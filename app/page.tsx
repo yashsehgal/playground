@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const components = [
   { href: "/token-usage", name: "Token usage" },
+  { href: "/chat-input", name: "Chat input" },
 ];
 
 export default function Home() {
