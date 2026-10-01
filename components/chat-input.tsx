@@ -45,7 +45,12 @@ export function ChatInput() {
 
   return (
     <div ref={rootRef} className="w-full max-w-[32rem]">
-      <div className="mb-2 flex flex-wrap gap-2">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <p className="inline-flex items-center gap-1.5 rounded-sm bg-white px-3 py-2 text-sm leading-5 font-medium shadow-panel">
+          <span>Changes</span>
+          <span className="text-added tabular-nums">+24</span>
+          <span className="text-removed tabular-nums">-11</span>
+        </p>
         <div className="relative">
           <button
             type="button"

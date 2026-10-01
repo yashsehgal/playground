@@ -4,6 +4,8 @@
   --font-sans: ui-sans-serif, system-ui, sans-serif;
   --color-ink: oklch(0.28 0.012 75);
   --color-muted: oklch(0.5 0.012 75);
+  --color-added: oklch(0.46 0.11 150);
+  --color-removed: oklch(0.5 0.16 25);
   --color-canvas: oklch(0.962 0.008 90);
   --color-row: oklch(0.945 0.006 90);
   --color-track: oklch(0.922 0.006 90);
