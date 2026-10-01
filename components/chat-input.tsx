@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const models = [
   { id: "opus-5.5", name: "Opus 5.5", behavior: "max" },
@@ -18,8 +18,6 @@ type OpenMenu = "commit" | "model" | null;
 
 export function ChatInput() {
   const rootRef = useRef<HTMLDivElement>(null);
-  const messageId = useId();
-  const [message, setMessage] = useState("");
   const [modelId, setModelId] = useState(models[0].id);
   const [commitAction, setCommitAction] = useState(commitActions[0]);
   const [open, setOpen] = useState<OpenMenu>(null);
@@ -74,7 +72,6 @@ export function ChatInput() {
                   role="menuitem"
                   onClick={() => {
                     setCommitAction(action);
-                    setMessage(action);
                     setOpen(null);
                   }}
                   className={`block w-full rounded-sm px-3 py-2 text-start text-sm leading-5 hover:bg-row focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink/40 ${
@@ -93,17 +90,12 @@ export function ChatInput() {
         className="rounded-sm bg-white p-2 shadow-panel"
         onSubmit={(event) => event.preventDefault()}
       >
-        <label htmlFor={messageId} className="sr-only">
-          Message
-        </label>
-        <textarea
-          id={messageId}
-          rows={2}
-          value={message}
-          placeholder="Message"
-          onChange={(event) => setMessage(event.target.value)}
-          className="block w-full resize-none bg-transparent px-2 pt-2 pb-1 text-base leading-5 text-ink placeholder:text-muted focus-visible:outline-none sm:text-sm"
-        />
+        <p className="px-2 pt-2 pb-1 text-base leading-5 font-normal text-ink sm:text-sm">
+          Create a PR with changes from{" "}
+          <span className="rounded-sm bg-mention-bg px-1 py-0.5 whitespace-nowrap text-mention">
+            pr-14/backend
+          </span>
+        </p>
         <div className="flex items-center gap-1 pt-1">
           <div className="relative">
             <button
