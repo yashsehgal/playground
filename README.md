@@ -15,3 +15,4 @@ Open [http://localhost:3000](http://localhost:3000).
 
 - [Token usage](http://localhost:3000/token-usage) shows how a context budget is split across sources, on a generated shader background.
 - [Chat input](http://localhost:3000/chat-input) is a message composer with a branch-changes badge, a commit follow-up, and a model selector.
+- [Modes](http://localhost:3000/modes) is the menu for how a chat session asks for permission before it acts.
