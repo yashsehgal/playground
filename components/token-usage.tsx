@@ -63,7 +63,7 @@ export function TokenUsage({ items, limit }: TokenUsageProps) {
   return (
     <section
       aria-labelledby="token-usage-title"
-      className="w-full max-w-[22.5rem] rounded-sm bg-white p-2 shadow-panel"
+      className="w-full max-w-[22.5rem] rounded-sm bg-white p-2 text-ink shadow-panel dark:bg-surface-dark dark:text-ink-dark"
     >
       <header className="px-3 pt-2">
         <h2
@@ -76,13 +76,15 @@ export function TokenUsage({ items, limit }: TokenUsageProps) {
 
       <div className="mt-4 px-3">
         <div className="flex items-baseline justify-between gap-4">
-          <p className="text-sm leading-5 text-muted">{usedPercent}% full</p>
-          <p className="text-sm leading-5 whitespace-nowrap text-ink tabular-nums">
+          <p className="text-sm leading-5 text-muted dark:text-muted-dark">
+            {usedPercent}% full
+          </p>
+          <p className="text-sm leading-5 whitespace-nowrap tabular-nums">
             {formatTotal(used)} / {formatTotal(limit)} tokens
           </p>
         </div>
         <div
-          className="mt-3 flex h-1.5 overflow-hidden rounded-full bg-track"
+          className="mt-3 flex h-1.5 overflow-hidden rounded-full bg-track dark:bg-track-dark"
           aria-hidden="true"
         >
           {items.map((item) => (
@@ -105,7 +107,7 @@ export function TokenUsage({ items, limit }: TokenUsageProps) {
             key={item.id}
             onMouseEnter={() => setActiveId(item.id)}
             onMouseLeave={() => setActiveId(null)}
-            className={`grid grid-cols-[auto_minmax(0,1fr)_2.75rem_3.25rem] items-center gap-x-3 rounded-sm px-3 py-2 hover:bg-row ${activeId === item.id ? "bg-row" : ""}`}
+            className={`grid grid-cols-[auto_minmax(0,1fr)_2.75rem_3.25rem] items-center gap-x-3 rounded-sm px-3 py-2 hover:bg-row dark:hover:bg-row-dark ${activeId === item.id ? "bg-row dark:bg-row-dark" : ""}`}
           >
             <span
               className="size-3 rounded-[4px]"
@@ -115,10 +117,10 @@ export function TokenUsage({ items, limit }: TokenUsageProps) {
             <span className="truncate text-sm leading-5 font-medium">
               {item.label}
             </span>
-            <span className="text-end text-sm leading-5 text-muted tabular-nums">
+            <span className="text-end text-sm leading-5 text-muted tabular-nums dark:text-muted-dark">
               {shares[index]}%
             </span>
-            <span className="text-end text-sm leading-5 text-muted tabular-nums">
+            <span className="text-end text-sm leading-5 text-muted tabular-nums dark:text-muted-dark">
               {formatDetail(item.tokens)}
             </span>
           </li>
