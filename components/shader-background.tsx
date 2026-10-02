@@ -11,6 +11,7 @@ import {
 type ShaderBackgroundProps = {
   seed?: number;
   className?: string;
+  recipe?: ShaderRecipe;
 };
 
 function compileShader(
@@ -82,12 +83,12 @@ function resizeCanvas(canvas: HTMLCanvasElement) {
   return true;
 }
 
-export function ShaderBackground({ seed, className }: ShaderBackgroundProps) {
+export function ShaderBackground({ seed, className, recipe: recipeProp }: ShaderBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [generatedSeed] = useState(() => Math.floor(Math.random() * 2 ** 31));
   const recipe = useMemo(
-    () => createShaderRecipe(seed ?? generatedSeed),
-    [seed, generatedSeed],
+    () => recipeProp ?? createShaderRecipe(seed ?? generatedSeed),
+    [recipeProp, seed, generatedSeed],
   );
 
   useEffect(() => {

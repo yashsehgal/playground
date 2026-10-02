@@ -1,3 +1,9 @@
+.menu {
+  box-shadow:
+    0 1px 2px -1px oklch(0 0 0 / 0.04),
+    0 8px 18px -12px oklch(0 0 0 / 0.05);
+}
+
 .editor {
   min-height: 2.75rem;
   white-space: pre-wrap;

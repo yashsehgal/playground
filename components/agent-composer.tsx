@@ -5,6 +5,14 @@ import { agentList, type Agent } from "@/lib/agents";
 import { AgentFace, mountAgentFace } from "@/components/agent-face";
 import styles from "./agent-composer.module.css";
 
+const demoAgents = agentList.map((agent) => ({
+  ...agent,
+  color: agent.color.replace(
+    /oklch\(([\d.]+)\s+[\d.]+\s+([\d.]+)\)/,
+    (_, lightness: string, hue: string) => `oklch(${lightness} 0.14 ${hue})`,
+  ),
+}));
+
 const surface = "bg-white text-ink dark:bg-surface-dark dark:text-ink-dark";
 const focus =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink/40 dark:focus-visible:outline-ink-dark/40";
@@ -89,7 +97,7 @@ export function AgentComposer() {
   const [message, setMessage] = useState("");
   const [cursor, setCursor] = useState(0);
   const [listening, setListening] = useState(false);
-  const [order, setOrder] = useState(agentList);
+  const [order, setOrder] = useState(demoAgents);
   const [activeIndex, setActiveIndex] = useState(0);
   const [mentioned, setMentioned] = useState<string[]>([]);
   const wasMentioning = useRef(false);
@@ -97,7 +105,7 @@ export function AgentComposer() {
   const query = mentionQuery(message, cursor);
   const mentioning = query !== null;
   const matches = mentioning
-    ? agentList.filter((agent) => matchesAgent(agent, query))
+    ? demoAgents.filter((agent) => matchesAgent(agent, query))
     : [];
   const peeking = order.filter((agent) => !mentioned.includes(agent.name));
   const canSend = message.trim().length > 0;
@@ -146,7 +154,7 @@ export function AgentComposer() {
   };
 
   useEffect(() => {
-    if (mentioning && !wasMentioning.current) setOrder(shuffle(agentList));
+    if (mentioning && !wasMentioning.current) setOrder(shuffle(demoAgents));
     wasMentioning.current = mentioning;
   }, [mentioning]);
 
@@ -188,7 +196,7 @@ export function AgentComposer() {
         {mentioning ? `${peeking.map((agent) => agent.name).join(", ")} are ready` : ""}
       </p>
     <form
-      className={`relative z-10 w-full rounded-sm p-2 shadow-panel ${surface}`}
+      className={`relative z-10 w-full rounded-sm p-2 ${surface}`}
       onSubmit={(event) => {
         event.preventDefault();
         if (!canSend) return;
@@ -280,7 +288,7 @@ export function AgentComposer() {
           role="listbox"
           id="agent-mentions"
           aria-label="Agents"
-          className={`absolute top-full right-0 left-0 z-20 mt-2 rounded-sm p-2 shadow-panel ${surface}`}
+          className={`absolute top-full right-0 left-0 z-20 mt-2 rounded-sm p-2 ${styles.menu} ${surface}`}
         >
           {matches.length > 0 ? (
             matches.map((agent, index) => (

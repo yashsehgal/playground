@@ -53,6 +53,22 @@ function oklchToSrgb(l: number, c: number, hDeg: number): Rgb {
   return [encode(linear[0]), encode(linear[1]), encode(linear[2])];
 }
 
+/** Two close light greys, used when a demo should stay nearly monochrome. */
+export const greyShaderRecipe: ShaderRecipe = {
+  seed: 7,
+  colors: [
+    [0.975, 0.975, 0.975],
+    [0.9, 0.9, 0.9],
+    [0.975, 0.975, 0.975],
+    [0.9, 0.9, 0.9],
+  ],
+  scale: 1.15,
+  warp: 1.45,
+  softness: 0.82,
+  angle: 0.55,
+  drift: [0.02, 0.015],
+};
+
 export function createShaderRecipe(seed: number): ShaderRecipe {
   const rand = mulberry32(seed);
   const hue = rand() * 360;
