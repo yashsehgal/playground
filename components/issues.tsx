@@ -1,12 +1,20 @@
 export type IssuePriority = "none" | "low" | "medium" | "high";
 export type IssueStatus = "todo" | "progress" | "review";
 
+export type IssueAgent = {
+  id: string;
+  name: string;
+  color: string;
+};
+
 export type Issue = {
   id: string;
   key: string;
   title: string;
   priority: IssuePriority;
   status: IssueStatus;
+  assignees: IssueAgent[];
+  activity: string;
   pullRequest?: number;
 };
 
@@ -27,36 +35,85 @@ const statusLabel: Record<IssueStatus, string> = {
   review: "In review",
 };
 
+const statusOrder: Record<IssueStatus, number> = {
+  review: 0,
+  progress: 1,
+  todo: 2,
+};
+
+const priorityOrder: Record<IssuePriority, number> = {
+  high: 0,
+  medium: 1,
+  low: 2,
+  none: 3,
+};
+
+function byStatusThenPriority(a: Issue, b: Issue) {
+  const status = statusOrder[a.status] - statusOrder[b.status];
+  if (status !== 0) return status;
+  return priorityOrder[a.priority] - priorityOrder[b.priority];
+}
+
 export function Issues({ issues }: IssuesProps) {
+  const ordered = [...issues].sort(byStatusThenPriority);
+
   return (
     <section
       aria-label="Issues"
       className="w-full max-w-[26rem] rounded-sm bg-white p-2 text-ink dark:bg-surface-dark dark:text-ink-dark"
     >
       <ul>
-        {issues.map((issue) => (
+        {ordered.map((issue) => (
           <li
             key={issue.id}
-            className="grid grid-cols-[0.875rem_4.5rem_0.875rem_minmax(0,1fr)_auto] items-center gap-x-2.5 rounded-sm px-3 py-2 hover:bg-row dark:hover:bg-row-dark"
+            className="rounded-sm px-3 py-2 hover:bg-row dark:hover:bg-row-dark"
           >
-            <PriorityIcon priority={issue.priority} />
-            <span className="text-sm leading-5 text-muted tabular-nums dark:text-muted-dark">
-              {issue.key}
-            </span>
-            <StatusIcon status={issue.status} />
-            <span className="truncate text-sm leading-5 font-medium">
-              {issue.title}
-            </span>
-            {issue.pullRequest ? (
-              <span className="inline-flex items-center gap-1 rounded-sm bg-mention-bg px-1.5 text-sm leading-5 text-mention tabular-nums dark:bg-mention-bg-dark dark:text-mention-dark">
-                <BranchIcon />
-                {issue.pullRequest}
+            <div className="grid grid-cols-[0.875rem_4.5rem_0.875rem_minmax(0,1fr)_auto] items-center gap-x-2.5">
+              <PriorityIcon priority={issue.priority} />
+              <span className="text-sm leading-5 text-muted tabular-nums dark:text-muted-dark">
+                {issue.key}
               </span>
-            ) : null}
+              <StatusIcon status={issue.status} />
+              <span className="truncate text-sm leading-5 font-medium">
+                {issue.title}
+              </span>
+              {issue.pullRequest ? (
+                <span className="inline-flex items-center gap-1 rounded-sm bg-mention-bg px-1.5 text-sm leading-5 text-mention tabular-nums dark:bg-mention-bg-dark dark:text-mention-dark">
+                  <BranchIcon />
+                  {issue.pullRequest}
+                </span>
+              ) : null}
+            </div>
+            <div className="mt-1.5 grid grid-cols-[0.875rem_4.5rem_0.875rem_minmax(0,1fr)] gap-x-2.5">
+              <p className="col-start-4 flex min-w-0 items-center gap-2 text-sm leading-5 text-muted dark:text-muted-dark">
+                <AgentStack agents={issue.assignees} />
+                <span className="truncate">{issue.activity}</span>
+              </p>
+            </div>
           </li>
         ))}
       </ul>
     </section>
+  );
+}
+
+function AgentStack({ agents }: { agents: IssueAgent[] }) {
+  return (
+    <span className="flex shrink-0 items-center">
+      {agents.map((agent, index) => (
+        <span
+          key={agent.id}
+          className="size-3.5 rounded-[4px] ring-2 ring-white dark:ring-surface-dark"
+          style={{
+            backgroundColor: agent.color,
+            marginLeft: index === 0 ? 0 : -6,
+            zIndex: index + 1,
+          }}
+        >
+          <span className="sr-only">{agent.name}</span>
+        </span>
+      ))}
+    </span>
   );
 }
 
