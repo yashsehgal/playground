@@ -7,6 +7,7 @@ const components = [
   { href: "/file-changed", name: "File changed" },
   { href: "/active-agents", name: "Active agents" },
   { href: "/issues", name: "Issues" },
+  { href: "/interactive-agents", name: "Interactive agents" },
 ];
 
 export default function Home() {

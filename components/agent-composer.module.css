@@ -1,0 +1,29 @@
+.block {
+  transform: translateY(34px);
+}
+
+.block[data-peek="true"] {
+  animation: agent-peek 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes agent-peek {
+  0% {
+    transform: translateY(34px);
+  }
+  62% {
+    transform: translateY(14px);
+  }
+  80% {
+    transform: translateY(19px);
+  }
+  100% {
+    transform: translateY(18px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .block[data-peek="true"] {
+    animation: none;
+    transform: translateY(18px);
+  }
+}

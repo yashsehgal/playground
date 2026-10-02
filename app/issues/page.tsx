@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
 import { Issues } from "@/components/issues";
 import { ShaderBackground } from "@/components/shader-background";
+import { agents } from "@/lib/agents";
 
 export const metadata: Metadata = {
   title: "Issues",
-};
-
-const agents = {
-  peter: { id: "peter", name: "Peter", color: "oklch(0.8 0.06 250)" },
-  mia: { id: "mia", name: "Mia", color: "oklch(0.82 0.06 165)" },
-  adam: { id: "adam", name: "Adam", color: "oklch(0.84 0.06 85)" },
-  nina: { id: "nina", name: "Nina", color: "oklch(0.8 0.05 320)" },
-  leo: { id: "leo", name: "Leo", color: "oklch(0.8 0.06 45)" },
 };
 
 const issues = [
