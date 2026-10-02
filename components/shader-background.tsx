@@ -76,10 +76,10 @@ function resizeCanvas(canvas: HTMLCanvasElement) {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const width = Math.max(1, Math.round(rect.width * dpr));
   const height = Math.max(1, Math.round(rect.height * dpr));
-  if (canvas.width !== width || canvas.height !== height) {
-    canvas.width = width;
-    canvas.height = height;
-  }
+  if (canvas.width === width && canvas.height === height) return false;
+  canvas.width = width;
+  canvas.height = height;
+  return true;
 }
 
 export function ShaderBackground({ seed, className }: ShaderBackgroundProps) {
@@ -113,9 +113,13 @@ export function ShaderBackground({ seed, className }: ShaderBackgroundProps) {
     );
 
     const position = gl.getAttribLocation(program, "a_position");
-    gl.enableVertexAttribArray(position);
-    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-    gl.useProgram(program);
+
+    const bind = () => {
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.enableVertexAttribArray(position);
+      gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+      gl.useProgram(program);
+    };
 
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -125,11 +129,13 @@ export function ShaderBackground({ seed, className }: ShaderBackgroundProps) {
 
     const render = (now: number) => {
       resizeCanvas(canvas);
+      bind();
       gl.viewport(0, 0, canvas.width, canvas.height);
       draw(gl, program, recipe, reducedMotion ? 0 : (now - started) / 1000);
       if (!reducedMotion) frame = requestAnimationFrame(render);
     };
 
+    bind();
     render(started);
 
     const observer = new ResizeObserver(() => {

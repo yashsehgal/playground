@@ -6,6 +6,7 @@ const components = [
   { href: "/modes", name: "Modes" },
   { href: "/file-changed", name: "File changed" },
   { href: "/active-agents", name: "Active agents" },
+  { href: "/issues", name: "Issues" },
 ];
 
 export default function Home() {
