@@ -13,6 +13,7 @@ const issues = [
     title: "Improve app startup metrics",
     priority: "high" as const,
     status: "progress" as const,
+    pullRequest: 186,
   },
   {
     id: "regression",
@@ -34,6 +35,7 @@ const issues = [
     title: "Reduce ETA jitter",
     priority: "high" as const,
     status: "review" as const,
+    pullRequest: 249,
   },
   {
     id: "gps",
@@ -41,6 +43,7 @@ const issues = [
     title: "Handle GPS dropouts gracefully",
     priority: "low" as const,
     status: "review" as const,
+    pullRequest: 312,
   },
 ];
 
