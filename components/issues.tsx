@@ -66,7 +66,7 @@ export function Issues({ issues }: IssuesProps) {
         {ordered.map((issue) => (
           <li
             key={issue.id}
-            className="rounded-sm px-3 py-2 hover:bg-row dark:hover:bg-row-dark"
+            className="group rounded-sm px-3 py-2 hover:bg-row dark:hover:bg-row-dark"
           >
             <div className="grid grid-cols-[0.875rem_4.5rem_0.875rem_minmax(0,1fr)_auto] items-center gap-x-2.5">
               <PriorityIcon priority={issue.priority} />
@@ -103,7 +103,7 @@ function AgentStack({ agents }: { agents: IssueAgent[] }) {
       {agents.map((agent, index) => (
         <span
           key={agent.id}
-          className="size-3.5 rounded-[4px] ring-2 ring-white dark:ring-surface-dark"
+          className="size-3.5 rounded-[4px] ring-2 ring-white group-hover:ring-row dark:ring-surface-dark dark:group-hover:ring-row-dark"
           style={{
             backgroundColor: agent.color,
             marginLeft: index === 0 ? 0 : -6,
