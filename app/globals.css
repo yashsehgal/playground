@@ -15,6 +15,7 @@
   --color-ink-dark: oklch(0.93 0.008 75);
   --color-muted-dark: oklch(0.74 0.012 75);
   --color-row-dark: oklch(0.32 0.012 75);
+  --color-page: #fff;
   --color-page-dark: oklch(0.21 0.01 75);
   --shadow-panel:
     0px 1px 2px -1px oklch(0 0 0 / 0.06),

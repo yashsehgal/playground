@@ -47,7 +47,7 @@ const items = [
 
 export default function TokenUsagePage() {
   return (
-    <main className="grid min-h-dvh place-items-center bg-white px-6 py-16">
+    <main className="grid min-h-dvh place-items-center px-6 py-16">
       <div className="relative flex aspect-[3/4] w-full max-w-[34rem] items-center justify-center overflow-hidden rounded-sm p-12 sm:p-16">
         <ShaderBackground className="absolute inset-0" />
         <div className="relative w-full max-w-[22.5rem]">

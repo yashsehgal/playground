@@ -8,7 +8,7 @@ const components = [
 
 export default function Home() {
   return (
-    <main className="min-h-dvh bg-white px-6 py-16">
+    <main className="min-h-dvh px-6 py-16">
       <div className="mx-auto w-full max-w-sm">
         <h1 className="text-base font-medium leading-[1.2]">Components</h1>
         <ul className="mt-4">
