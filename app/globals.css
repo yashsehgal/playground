@@ -11,6 +11,11 @@
   --color-canvas: oklch(0.962 0.008 90);
   --color-row: oklch(0.945 0.006 90);
   --color-track: oklch(0.922 0.006 90);
+  --color-surface-dark: oklch(0.27 0.012 75);
+  --color-ink-dark: oklch(0.93 0.008 75);
+  --color-muted-dark: oklch(0.74 0.012 75);
+  --color-row-dark: oklch(0.32 0.012 75);
+  --color-page-dark: oklch(0.21 0.01 75);
   --shadow-panel:
     0px 1px 2px -1px oklch(0 0 0 / 0.06),
     0px 2px 4px 0px oklch(0 0 0 / 0.04),
@@ -19,6 +24,12 @@
 
 html {
   color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
 }
 
 body {
