@@ -20,6 +20,10 @@
   --color-removed-dark: oklch(0.74 0.13 25);
   --color-mention-dark: oklch(0.78 0.07 255);
   --color-mention-bg-dark: oklch(0.34 0.04 255);
+  --color-file-css: oklch(0.48 0.11 8);
+  --color-file-css-dark: oklch(0.76 0.1 8);
+  --color-file-code: oklch(0.48 0.08 195);
+  --color-file-code-dark: oklch(0.76 0.08 195);
   --color-page: oklch(0.97 0.004 90);
   --color-page-dark: oklch(0.21 0.01 75);
   --shadow-panel:

@@ -4,6 +4,7 @@ const components = [
   { href: "/token-usage", name: "Token usage" },
   { href: "/chat-input", name: "Chat input" },
   { href: "/modes", name: "Modes" },
+  { href: "/file-changed", name: "File changed" },
 ];
 
 export default function Home() {
