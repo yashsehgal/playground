@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { agentList, type Agent } from "@/lib/agents";
+import { AgentFace, mountAgentFace } from "@/components/agent-face";
 import styles from "./agent-composer.module.css";
 
 const surface = "bg-white text-ink dark:bg-surface-dark dark:text-ink-dark";
@@ -22,6 +23,57 @@ function mentionQuery(value: string, cursor: number) {
   return match ? match[1] : null;
 }
 
+function readEditor(root: HTMLElement) {
+  const selection = window.getSelection();
+  let text = "";
+  let cursor = 0;
+  let found = false;
+
+  const walk = (node: Node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const value = node.textContent ?? "";
+      if (!found && selection?.anchorNode === node) {
+        cursor = text.length + Math.min(selection.anchorOffset, value.length);
+        found = true;
+      }
+      text += value;
+      return;
+    }
+
+    if (!(node instanceof HTMLElement)) return;
+
+    if (node.dataset.agentName) {
+      const token = `@${node.dataset.agentName}`;
+      if (!found && selection && node.contains(selection.anchorNode)) {
+        cursor = text.length + token.length;
+        found = true;
+      }
+      text += token;
+      return;
+    }
+
+    node.childNodes.forEach(walk);
+  };
+
+  walk(root);
+  if (!found) cursor = text.length;
+  return { text, cursor };
+}
+
+function createChip(agent: Agent) {
+  const chip = document.createElement("span");
+  chip.contentEditable = "false";
+  chip.dataset.agentName = agent.name;
+  chip.className = styles.mention;
+  chip.style.setProperty("--agent", agent.color);
+  chip.append(mountAgentFace(agent, styles.shape, "wander"));
+
+  const name = document.createElement("span");
+  name.textContent = agent.name;
+  chip.append(name);
+  return chip;
+}
+
 function matchesAgent(agent: Agent, query: string) {
   const term = query.toLowerCase();
   if (!term) return true;
@@ -39,19 +91,58 @@ export function AgentComposer() {
   const [listening, setListening] = useState(false);
   const [order, setOrder] = useState(agentList);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [mentioned, setMentioned] = useState<string[]>([]);
   const wasMentioning = useRef(false);
+  const editorRef = useRef<HTMLDivElement>(null);
   const query = mentionQuery(message, cursor);
   const mentioning = query !== null;
   const matches = mentioning
     ? agentList.filter((agent) => matchesAgent(agent, query))
     : [];
+  const peeking = order.filter((agent) => !mentioned.includes(agent.name));
   const canSend = message.trim().length > 0;
 
+  const syncEditor = () => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const next = readEditor(editor);
+    setMessage(next.text);
+    setCursor(next.cursor);
+    editor.dataset.empty = next.text.length === 0 ? "true" : "false";
+    const names = [...editor.querySelectorAll<HTMLElement>("[data-agent-name]")]
+      .map((node) => node.dataset.agentName)
+      .filter((name): name is string => Boolean(name));
+    setMentioned([...new Set(names)]);
+  };
+
   const chooseAgent = (agent: Agent) => {
-    const before = message.slice(0, cursor).replace(/@([^\s@]*)$/, `@${agent.name} `);
-    const next = before + message.slice(cursor);
-    setMessage(next);
-    setCursor(before.length);
+    const editor = editorRef.current;
+    const selection = window.getSelection();
+    if (!editor || !selection?.rangeCount) return;
+    const range = selection.getRangeAt(0);
+    const node = range.startContainer;
+    if (node.nodeType !== Node.TEXT_NODE || !editor.contains(node)) return;
+    const value = node.textContent ?? "";
+    const offset = range.startOffset;
+    const typed = value.slice(0, offset).match(/@([^\s@]*)$/);
+    if (!typed) return;
+
+    const start = offset - typed[0].length;
+    const deleteRange = document.createRange();
+    deleteRange.setStart(node, start);
+    deleteRange.setEnd(node, offset);
+    deleteRange.deleteContents();
+
+    const chip = createChip(agent);
+    deleteRange.insertNode(chip);
+    const space = document.createTextNode(" ");
+    chip.after(space);
+    const after = document.createRange();
+    after.setStart(space, 1);
+    after.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(after);
+    syncEditor();
   };
 
   useEffect(() => {
@@ -63,49 +154,66 @@ export function AgentComposer() {
     setActiveIndex(0);
   }, [query]);
 
-  const placeCursor = (element: HTMLTextAreaElement) => {
-    setCursor(element.selectionStart ?? element.value.length);
-  };
-
   return (
     <div className="relative w-full max-w-[32rem]">
       <div
         className="pointer-events-none absolute inset-x-6 bottom-full z-0 flex h-8 items-end justify-center gap-3"
         aria-hidden={!mentioning}
       >
-        {order.map((agent, index) => (
-          <span
-            key={agent.id}
-            data-peek={mentioning ? "true" : undefined}
-            className={`size-8 rounded-[4px] ${styles.block}`}
-            style={{
-              backgroundColor: agent.color,
-              animationDelay: `${index * 70}ms`,
-            }}
-          />
-        ))}
+        {peeking.map((agent, index) => {
+          const selected = mentioning && matches[activeIndex]?.id === agent.id;
+          return (
+            <span
+              key={agent.id}
+              data-peek={mentioning ? "true" : undefined}
+              data-shape={agent.shape === "triangle" ? "triangle" : undefined}
+              className={`size-8 ${styles.block}`}
+              style={{ animationDelay: `${index * 70}ms`, zIndex: selected ? 2 : 1 }}
+            >
+              <span
+                data-selected={selected ? "true" : undefined}
+                className={`block size-full ${styles.face}`}
+              >
+                <AgentFace
+                  agent={agent}
+                  gaze={mentioning ? "up" : "wander"}
+                  className="block size-full"
+                />
+              </span>
+            </span>
+          );
+        })}
       </div>
       <p className="sr-only" aria-live="polite">
-        {mentioning ? `${order.map((agent) => agent.name).join(", ")} are ready` : ""}
+        {mentioning ? `${peeking.map((agent) => agent.name).join(", ")} are ready` : ""}
       </p>
     <form
       className={`relative z-10 w-full rounded-sm p-2 shadow-panel ${surface}`}
       onSubmit={(event) => {
         event.preventDefault();
         if (!canSend) return;
+        if (editorRef.current) {
+          editorRef.current.replaceChildren();
+          editorRef.current.dataset.empty = "true";
+        }
         setMessage("");
         setCursor(0);
+        setMentioned([]);
         setListening(false);
       }}
     >
       <label className="sr-only" htmlFor="agent-message">
         Message
       </label>
-      <textarea
+      <div
         id="agent-message"
-        rows={2}
-        value={message}
-        placeholder="Message the agents"
+        ref={editorRef}
+        role="textbox"
+        aria-multiline="true"
+        aria-label="Message"
+        data-placeholder="Message the agents"
+        data-empty="true"
+        contentEditable
         aria-autocomplete="list"
         aria-controls={mentioning ? "agent-mentions" : undefined}
         aria-activedescendant={
@@ -113,11 +221,18 @@ export function AgentComposer() {
             ? `agent-option-${matches[activeIndex].id}`
             : undefined
         }
-        onChange={(event) => {
-          setMessage(event.target.value);
-          placeCursor(event.target);
+        onInput={syncEditor}
+        onKeyUp={syncEditor}
+        onMouseUp={syncEditor}
+        onPaste={(event) => {
+          event.preventDefault();
+          const text = event.clipboardData.getData("text/plain");
+          const selection = window.getSelection();
+          if (!selection?.rangeCount) return;
+          selection.getRangeAt(0).insertNode(document.createTextNode(text));
+          selection.collapseToEnd();
+          syncEditor();
         }}
-        onSelect={(event) => placeCursor(event.currentTarget)}
         onKeyDown={(event) => {
           if (mentioning && matches.length > 0 && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
             event.preventDefault();
@@ -132,9 +247,9 @@ export function AgentComposer() {
             return;
           }
           event.preventDefault();
-          event.currentTarget.form?.requestSubmit();
+          event.currentTarget.closest("form")?.requestSubmit();
         }}
-        className="w-full resize-none bg-transparent px-2 pt-2 pb-1 text-base leading-5 text-ink outline-none placeholder:text-muted sm:text-sm dark:text-ink-dark dark:placeholder:text-muted-dark"
+        className={`w-full bg-transparent px-2 pt-2 pb-1 text-base leading-5 text-ink outline-none sm:text-sm dark:text-ink-dark ${styles.editor}`}
       />
       <div className="flex items-center justify-end gap-1 pt-1">
         <button
@@ -181,10 +296,10 @@ export function AgentComposer() {
                   index === activeIndex ? "bg-row dark:bg-row-dark" : ""
                 }`}
               >
-                <span
-                  className="size-3.5 rounded-[4px]"
-                  style={{ backgroundColor: agent.color }}
-                  aria-hidden="true"
+                <AgentFace
+                  agent={agent}
+                  gaze={index === activeIndex ? "up" : "wander"}
+                  className="block size-3.5"
                 />
                 <span className="truncate text-sm leading-5 font-medium">
                   {agent.name}

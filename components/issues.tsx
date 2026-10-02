@@ -1,3 +1,5 @@
+import { AgentFace } from "@/components/agent-face";
+
 export type IssuePriority = "none" | "low" | "medium" | "high";
 export type IssueStatus = "todo" | "progress" | "review";
 
@@ -103,13 +105,13 @@ function AgentStack({ agents }: { agents: IssueAgent[] }) {
       {agents.map((agent, index) => (
         <span
           key={agent.id}
-          className="size-3.5 rounded-[4px] ring-2 ring-white group-hover:ring-row dark:ring-surface-dark dark:group-hover:ring-row-dark"
+          className="size-3.5 overflow-hidden rounded-[4px] ring-2 ring-white group-hover:ring-row dark:ring-surface-dark dark:group-hover:ring-row-dark"
           style={{
-            backgroundColor: agent.color,
             marginLeft: index === 0 ? 0 : -6,
             zIndex: index + 1,
           }}
         >
+          <AgentFace agent={{ ...agent, shape: "square" }} className="block size-full" />
           <span className="sr-only">{agent.name}</span>
         </span>
       ))}
