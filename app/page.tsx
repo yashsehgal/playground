@@ -16,7 +16,7 @@ export default function Home() {
             <li key={component.href}>
               <Link
                 href={component.href}
-                className="block rounded-sm px-3 py-2 text-sm leading-5 font-medium hover:bg-row focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink/40"
+                className="block rounded-sm px-3 py-2 text-sm leading-5 font-medium hover:bg-row focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink/40 dark:hover:bg-row-dark dark:focus-visible:outline-ink-dark/40"
               >
                 {component.name}
               </Link>
