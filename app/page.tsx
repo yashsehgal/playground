@@ -5,6 +5,7 @@ const components = [
   { href: "/chat-input", name: "Chat input" },
   { href: "/modes", name: "Modes" },
   { href: "/file-changed", name: "File changed" },
+  { href: "/active-agents", name: "Active agents" },
 ];
 
 export default function Home() {
