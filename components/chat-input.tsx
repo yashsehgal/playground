@@ -22,6 +22,11 @@ export function ChatInput() {
   const [commitAction, setCommitAction] = useState(commitActions[0]);
   const [open, setOpen] = useState<OpenMenu>(null);
   const model = models.find((item) => item.id === modelId) ?? models[0];
+  const surface = "bg-white text-ink dark:bg-surface-dark dark:text-ink-dark";
+  const muted = "text-muted dark:text-muted-dark";
+  const hover = "hover:bg-row dark:hover:bg-row-dark";
+  const focus =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink/40 dark:focus-visible:outline-ink-dark/40";
 
   useEffect(() => {
     if (!open) return;
@@ -44,10 +49,12 @@ export function ChatInput() {
   return (
     <div ref={rootRef} className="w-full max-w-[32rem]">
       <div className="mb-2 flex flex-wrap items-center gap-2">
-        <p className="inline-flex items-center gap-1.5 rounded-sm bg-white px-3 py-2 text-sm leading-5 font-medium shadow-panel">
+        <p
+          className={`inline-flex items-center gap-1.5 rounded-sm px-3 py-2 text-sm leading-5 font-medium shadow-panel ${surface}`}
+        >
           <span>Changes</span>
-          <span className="text-added tabular-nums">+24</span>
-          <span className="text-removed tabular-nums">-11</span>
+          <span className="text-added tabular-nums dark:text-added-dark">+24</span>
+          <span className="text-removed tabular-nums dark:text-removed-dark">-11</span>
         </p>
         <div className="relative">
           <button
@@ -55,7 +62,7 @@ export function ChatInput() {
             aria-expanded={open === "commit"}
             aria-haspopup="menu"
             onClick={() => setOpen(open === "commit" ? null : "commit")}
-            className="inline-flex items-center gap-1.5 rounded-sm bg-white px-3 py-2 text-sm leading-5 font-medium shadow-panel transition-[scale,background-color] duration-150 ease-out hover:bg-row focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink/40 active:scale-[0.96] motion-reduce:transition-none"
+            className={`inline-flex items-center gap-1.5 rounded-sm px-3 py-2 text-sm leading-5 font-medium shadow-panel transition-[scale,background-color] duration-150 ease-out active:scale-[0.96] motion-reduce:transition-none ${surface} ${hover} ${focus}`}
           >
             {commitAction}
             <Chevron open={open === "commit"} />
@@ -63,7 +70,7 @@ export function ChatInput() {
           {open === "commit" ? (
             <div
               role="menu"
-              className="absolute bottom-full left-0 z-10 mb-1 min-w-56 rounded-sm bg-white p-1 shadow-panel"
+              className={`absolute bottom-full left-0 z-10 mb-1 min-w-56 rounded-sm p-1 shadow-panel ${surface}`}
             >
               {commitActions.map((action) => (
                 <button
@@ -74,8 +81,10 @@ export function ChatInput() {
                     setCommitAction(action);
                     setOpen(null);
                   }}
-                  className={`block w-full rounded-sm px-3 py-2 text-start text-sm leading-5 hover:bg-row focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink/40 ${
-                    action === commitAction ? "bg-row font-medium" : ""
+                  className={`block w-full rounded-sm px-3 py-2 text-start text-sm leading-5 ${hover} ${focus} ${
+                    action === commitAction
+                      ? "bg-row font-medium dark:bg-row-dark"
+                      : ""
                   }`}
                 >
                   {action}
@@ -87,12 +96,12 @@ export function ChatInput() {
       </div>
 
       <form
-        className="rounded-sm bg-white p-2 shadow-panel"
+        className={`rounded-sm p-2 shadow-panel ${surface}`}
         onSubmit={(event) => event.preventDefault()}
       >
-        <p className="px-2 pt-2 pb-1 text-base leading-5 font-normal text-ink sm:text-sm">
+        <p className="px-2 pt-2 pb-1 text-base leading-5 font-normal sm:text-sm">
           Create a PR with changes from{" "}
-          <span className="rounded-sm bg-mention-bg px-1 py-0.5 whitespace-nowrap text-mention">
+          <span className="rounded-sm bg-mention-bg px-1 py-0.5 whitespace-nowrap text-mention dark:bg-mention-bg-dark dark:text-mention-dark">
             pr-14/backend
           </span>
         </p>
@@ -103,19 +112,19 @@ export function ChatInput() {
               aria-expanded={open === "model"}
               aria-haspopup="listbox"
               onClick={() => setOpen(open === "model" ? null : "model")}
-              className={`inline-flex h-8 items-center gap-1.5 rounded-sm px-2 text-sm leading-5 transition-[scale,background-color] duration-150 ease-out hover:bg-row focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink/40 active:scale-[0.96] motion-reduce:transition-none ${
-                open === "model" ? "bg-track" : ""
+              className={`inline-flex h-8 items-center gap-1.5 rounded-sm px-2 text-sm leading-5 transition-[scale,background-color] duration-150 ease-out active:scale-[0.96] motion-reduce:transition-none ${hover} ${focus} ${
+                open === "model" ? "bg-track dark:bg-track-dark" : ""
               }`}
             >
               <span className="font-medium">{model.name}</span>
-              <span className="text-muted">{model.behavior}</span>
+              <span className={muted}>{model.behavior}</span>
               <Chevron open={open === "model"} />
             </button>
             {open === "model" ? (
               <div
                 role="listbox"
                 aria-label="Model"
-                className="absolute top-full left-0 z-10 mt-1 min-w-56 rounded-sm bg-white p-1 shadow-panel"
+                className={`absolute top-full left-0 z-10 mt-1 min-w-56 rounded-sm p-1 shadow-panel ${surface}`}
               >
                 {models.map((item) => (
                   <button
@@ -127,14 +136,14 @@ export function ChatInput() {
                       setModelId(item.id);
                       setOpen(null);
                     }}
-                    className={`flex w-full items-center justify-between gap-4 rounded-sm px-3 py-2 text-sm leading-5 hover:bg-row focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink/40 ${
-                      item.id === model.id ? "bg-row" : ""
+                    className={`flex w-full items-center justify-between gap-4 rounded-sm px-3 py-2 text-sm leading-5 ${hover} ${focus} ${
+                      item.id === model.id ? "bg-row dark:bg-row-dark" : ""
                     }`}
                   >
                     <span className={item.id === model.id ? "font-medium" : ""}>
                       {item.name}
                     </span>
-                    <span className="text-muted">{item.behavior}</span>
+                    <span className={muted}>{item.behavior}</span>
                   </button>
                 ))}
               </div>
@@ -144,7 +153,7 @@ export function ChatInput() {
           <button
             type="button"
             aria-label="Voice input"
-            className="ms-auto grid size-8 shrink-0 place-items-center rounded-sm bg-black text-white transition-[scale,background-color] duration-150 ease-out hover:bg-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink/40 active:scale-[0.96] motion-reduce:transition-none"
+            className="ms-auto grid size-8 shrink-0 place-items-center rounded-sm bg-black text-white transition-[scale,background-color] duration-150 ease-out hover:bg-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink/40 active:scale-[0.96] motion-reduce:transition-none dark:bg-ink-dark dark:text-ink dark:hover:bg-white"
           >
             <MicIcon />
           </button>
@@ -162,7 +171,7 @@ function Chevron({ open }: { open: boolean }) {
       viewBox="0 0 12 12"
       fill="none"
       aria-hidden="true"
-      className={`text-muted transition-transform duration-150 ease-out motion-reduce:transition-none ${
+      className={`text-muted transition-transform duration-150 ease-out motion-reduce:transition-none dark:text-muted-dark ${
         open ? "rotate-180" : ""
       }`}
     >
