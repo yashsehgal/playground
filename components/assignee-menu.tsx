@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { agentList, type Agent } from "@/lib/agents";
+import { agentList, agents, type Agent } from "@/lib/agents";
 import styles from "./assignee-menu.module.css";
 
 const focus =
@@ -40,7 +40,79 @@ export function AssigneeMenu() {
   );
 }
 
+function hold() {
+  return Math.random() < 0.5 ? 2000 : 4000;
+}
+
+function buildLog(name: string, inviteMia: boolean) {
+  const lines: { text: string; revealMia?: boolean }[] = [
+    { text: `Assigned to ${name}` },
+    { text: "Analyzing the task requirements" },
+    { text: "Seems like a design-related task" },
+  ];
+
+  if (inviteMia) {
+    lines.push(
+      { text: "Inviting Mia for design discussions" },
+      { text: "Invited Mia", revealMia: true },
+    );
+  }
+
+  lines.push(
+    { text: "Preparing a design document" },
+    { text: "Started working on the issue" },
+  );
+
+  let at = 0;
+  return lines.map((line, index) => {
+    const step = { ...line, at };
+    if (index < lines.length - 1) at += hold();
+    return step;
+  });
+}
+
 function AssignedAgent({ agent }: { agent: Agent }) {
+  const inviteMia = agent.id !== agents.mia.id;
+  const [log] = useState(() => buildLog(agent.name, inviteMia));
+  const [step, setStep] = useState(0);
+  const [showMia, setShowMia] = useState(false);
+  const current = log[step];
+
+  useEffect(() => {
+    const timers = log.slice(1).map((entry, index) =>
+      window.setTimeout(() => {
+        setStep(index + 1);
+        if (entry.revealMia) setShowMia(true);
+      }, entry.at),
+    );
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [log]);
+
+  return (
+    <p
+      aria-live="polite"
+      className="col-start-4 flex min-h-7 min-w-0 items-center gap-2 text-sm leading-5 text-muted dark:text-muted-dark"
+    >
+      <span className={styles.stack}>
+        <span className={styles.face}>
+          <AgentBlob agent={agent} />
+        </span>
+        <span className={styles.more} data-open={showMia ? "" : undefined}>
+          {showMia ? (
+            <span className={`${styles.face} ${styles.partner}`}>
+              <AgentBlob agent={agents.mia} />
+            </span>
+          ) : null}
+        </span>
+      </span>
+      <span key={current.text} className={`truncate ${styles.log}`}>
+        {current.text}
+      </span>
+    </p>
+  );
+}
+
+function AgentBlob({ agent }: { agent: Agent }) {
   const [landed, setLanded] = useState(false);
 
   useEffect(() => {
@@ -51,20 +123,15 @@ function AssignedAgent({ agent }: { agent: Agent }) {
   }, []);
 
   return (
-    <p className="col-start-4 flex min-h-7 min-w-0 items-center gap-2 text-sm leading-5 text-muted dark:text-muted-dark">
-      <span className={styles.stage}>
-        <span className={styles.hop}>
-          <span className="block size-full overflow-hidden rounded-[4px] ring-2 ring-white dark:ring-surface-dark">
-            <AgentFace
-              agent={{ ...agent, shape: "square" }}
-              gaze={landed ? "wander" : "up"}
-              className="block size-full"
-            />
-          </span>
-        </span>
+    <span className={styles.hop}>
+      <span className="block size-full overflow-hidden rounded-[4px] ring-2 ring-white dark:ring-surface-dark">
+        <AgentFace
+          agent={{ ...agent, shape: "square" }}
+          gaze={landed ? "wander" : "up"}
+          className="block size-full"
+        />
       </span>
-      <span className="truncate">{agent.name} is working on it</span>
-    </p>
+    </span>
   );
 }
 
