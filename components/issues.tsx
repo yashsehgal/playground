@@ -22,6 +22,7 @@ export type Issue = {
 
 type IssuesProps = {
   issues: Issue[];
+  assignable?: boolean;
 };
 
 const priorityLabel: Record<IssuePriority, string> = {
@@ -56,7 +57,7 @@ function byStatusThenPriority(a: Issue, b: Issue) {
   return priorityOrder[a.priority] - priorityOrder[b.priority];
 }
 
-export function Issues({ issues }: IssuesProps) {
+export function Issues({ issues, assignable = false }: IssuesProps) {
   const ordered = [...issues].sort(byStatusThenPriority);
 
   return (
@@ -68,7 +69,7 @@ export function Issues({ issues }: IssuesProps) {
         {ordered.map((issue) => (
           <li
             key={issue.id}
-            className="group rounded-sm px-3 py-2 hover:bg-row dark:hover:bg-row-dark"
+            className={`group rounded-sm px-3 py-2 ${assignable ? "" : "hover:bg-row dark:hover:bg-row-dark"}`}
           >
             <div className="grid grid-cols-[0.875rem_4.5rem_0.875rem_minmax(0,1fr)_auto] items-center gap-x-2.5">
               <PriorityIcon priority={issue.priority} />
@@ -87,10 +88,20 @@ export function Issues({ issues }: IssuesProps) {
               ) : null}
             </div>
             <div className="mt-1.5 grid grid-cols-[0.875rem_4.5rem_0.875rem_minmax(0,1fr)] gap-x-2.5">
-              <p className="col-start-4 flex min-w-0 items-center gap-2 text-sm leading-5 text-muted dark:text-muted-dark">
-                <AgentStack agents={issue.assignees} />
-                <span className="truncate">{issue.activity}</span>
-              </p>
+              {assignable ? (
+                <button
+                  type="button"
+                  className="col-start-4 inline-flex w-fit items-center gap-1 rounded-sm bg-track py-1 ps-1.5 pe-2 text-sm leading-5 text-ink transition-[background-color] duration-150 ease-out hover:bg-[oklch(0.888_0.006_90)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink/40 motion-reduce:transition-none dark:bg-track-dark dark:text-ink-dark dark:hover:bg-row-dark dark:focus-visible:outline-ink-dark/40"
+                >
+                  <PlusIcon />
+                  Add assignee
+                </button>
+              ) : (
+                <p className="col-start-4 flex min-w-0 items-center gap-2 text-sm leading-5 text-muted dark:text-muted-dark">
+                  <AgentStack agents={issue.assignees} />
+                  <span className="truncate">{issue.activity}</span>
+                </p>
+              )}
             </div>
           </li>
         ))}
@@ -116,6 +127,19 @@ function AgentStack({ agents }: { agents: IssueAgent[] }) {
         </span>
       ))}
     </span>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="shrink-0">
+      <path
+        d="M7 3.25v7.5M3.25 7h7.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 
