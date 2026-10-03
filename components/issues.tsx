@@ -1,4 +1,5 @@
 import { AgentFace } from "@/components/agent-face";
+import { AssigneeMenu } from "@/components/assignee-menu";
 
 export type IssuePriority = "none" | "low" | "medium" | "high";
 export type IssueStatus = "todo" | "progress" | "review";
@@ -89,13 +90,7 @@ export function Issues({ issues, assignable = false }: IssuesProps) {
             </div>
             <div className="mt-1.5 grid grid-cols-[0.875rem_4.5rem_0.875rem_minmax(0,1fr)] gap-x-2.5">
               {assignable ? (
-                <button
-                  type="button"
-                  className="col-start-4 inline-flex w-fit items-center gap-1 rounded-sm bg-track py-1 ps-1.5 pe-2 text-sm leading-5 text-ink transition-[background-color] duration-150 ease-out hover:bg-[oklch(0.888_0.006_90)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink/40 motion-reduce:transition-none dark:bg-track-dark dark:text-ink-dark dark:hover:bg-row-dark dark:focus-visible:outline-ink-dark/40"
-                >
-                  <PlusIcon />
-                  Add assignee
-                </button>
+                <AssigneeMenu />
               ) : (
                 <p className="col-start-4 flex min-w-0 items-center gap-2 text-sm leading-5 text-muted dark:text-muted-dark">
                   <AgentStack agents={issue.assignees} />
@@ -127,19 +122,6 @@ function AgentStack({ agents }: { agents: IssueAgent[] }) {
         </span>
       ))}
     </span>
-  );
-}
-
-function PlusIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="shrink-0">
-      <path
-        d="M7 3.25v7.5M3.25 7h7.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
   );
 }
 
