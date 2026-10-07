@@ -9,6 +9,8 @@ const components = [
   { href: "/issues", name: "Issues" },
   { href: "/interactive-agents", name: "Interactive agents" },
   { href: "/assigning-task", name: "Assigning task to an agent" },
+  { href: "/ai-actions", name: "AI actions for table contents" },
+  { href: "/data-table", name: "Data table" },
 ];
 
 export default function Home() {
