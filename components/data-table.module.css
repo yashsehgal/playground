@@ -20,7 +20,9 @@
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
+  transform: translateZ(0);
   animation: enrich-shimmer 1.35s linear infinite;
+  will-change: background-position;
 }
 
 @media (prefers-color-scheme: dark) {

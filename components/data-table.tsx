@@ -157,60 +157,20 @@ function wait(ms: number) {
   });
 }
 
-function SlideSwap({
-  signal,
-  children,
-}: {
-  signal: string;
-  children: ReactNode;
-}) {
-  const [outgoing, setOutgoing] = useState<ReactNode | null>(null);
-  const signalRef = useRef(signal);
-  const lastPaintedRef = useRef(children);
-
-  useEffect(() => {
-    if (signal === signalRef.current) {
-      lastPaintedRef.current = children;
-      return;
-    }
-
-    const previous = lastPaintedRef.current;
-    signalRef.current = signal;
-    lastPaintedRef.current = children;
-    setOutgoing(previous);
-    const id = window.setTimeout(() => setOutgoing(null), 200);
-    return () => window.clearTimeout(id);
-  }, [signal, children]);
-
-  return (
-    <span className="relative flex h-5 min-w-0 items-center overflow-hidden">
-      {outgoing ? (
-        <span
-          aria-hidden
-          className="absolute inset-0 flex min-w-0 items-center motion-safe:animate-out motion-safe:fade-out-0 motion-safe:slide-out-to-top-2 motion-safe:duration-200 motion-safe:ease-out motion-safe:fill-mode-forwards motion-reduce:opacity-0"
-        >
-          {outgoing}
-        </span>
-      ) : null}
-      <span
-        key={signal}
-        className="flex min-w-0 items-center motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200 motion-safe:ease-out motion-reduce:animate-none"
-      >
-        {children}
-      </span>
-    </span>
-  );
-}
-
 function EnrichStatusContent({ phase }: { phase: EnrichPhase }) {
   return (
-    <span className="flex min-w-0 items-center gap-1.5 text-black dark:text-white">
+    <span className="relative flex h-5 min-w-0 items-center overflow-hidden">
       <span
-        aria-hidden
-        className={`size-2 shrink-0 rounded-[2px] ${enrichPhaseSwatch[phase]}`}
-      />
-      <span className={`min-w-0 truncate ${styles.shimmerText}`}>
-        {enrichPhaseCopy[phase]}
+        key={phase}
+        className="flex min-w-[11ch] items-center gap-1.5 text-black motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-1 motion-safe:duration-200 motion-safe:ease-out motion-reduce:animate-none dark:text-white"
+      >
+        <span
+          aria-hidden
+          className={`size-2 shrink-0 rounded-[2px] ${enrichPhaseSwatch[phase]}`}
+        />
+        <span className={`min-w-0 truncate ${styles.shimmerText}`}>
+          {enrichPhaseCopy[phase]}
+        </span>
       </span>
     </span>
   );
@@ -218,20 +178,13 @@ function EnrichStatusContent({ phase }: { phase: EnrichPhase }) {
 
 function EnrichFieldCell({
   phase,
-  valueKey,
   children,
 }: {
   phase?: EnrichPhase;
-  valueKey: string;
   children: ReactNode;
 }) {
-  const signal = phase ? `status:${phase}` : `value:${valueKey}`;
-
-  return (
-    <SlideSwap signal={signal}>
-      {phase ? <EnrichStatusContent phase={phase} /> : children}
-    </SlideSwap>
-  );
+  if (!phase) return children;
+  return <EnrichStatusContent phase={phase} />;
 }
 
 const HEADERS = ["Company", "Focus", "Employees", "HQ", "Founded", "Social Links"] as const;
@@ -245,6 +198,7 @@ const headCell = `${cellBase} text-black dark:text-white`;
 function LinkedInLogo({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+      <rect width="24" height="24" rx="4" fill="#fff" />
       <path
         fill="#0A66C2"
         d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
@@ -630,7 +584,7 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
       aria-label="Companies"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
-      className="relative flex w-max max-w-full cursor-crosshair flex-col overflow-visible rounded-[10px] border-[0.5px] border-[#e6e8ec] bg-[#fafafa] text-[13px] select-none dark:border-[#303030] dark:bg-[#242424] [&_a]:cursor-crosshair"
+      className="relative flex w-max max-w-full cursor-crosshair flex-col overflow-visible rounded-b-[10px] border-[0.5px] border-[#e6e8ec] bg-[#fafafa] text-[13px] select-none dark:border-[#303030] dark:bg-[#242424] [&_a]:cursor-crosshair"
     >
       <div role="rowgroup">
         <div role="row" className={`${columns} font-medium`}>
@@ -647,7 +601,7 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
       </div>
       <div
         role="rowgroup"
-        className={`-mx-[0.5px] -mb-[0.5px] flex flex-col rounded-t-[10px] border-[0.5px] bg-white dark:bg-[#1a1a1a] ${line}`}
+        className={`-mx-[0.5px] -mb-[0.5px] flex flex-col border-[0.5px] bg-white dark:bg-[#1a1a1a] ${line}`}
       >
         {tableRows.map((row, index) => {
           const focusPhase = cellPhases[cellKey(row.id, "focus")];
@@ -681,7 +635,7 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
                 role="cell"
                 className={`${cell} not-last:border-r-[0.5px] ${line}`}
               >
-                <EnrichFieldCell phase={focusPhase} valueKey={row.focus}>
+                <EnrichFieldCell phase={focusPhase}>
                   <span className="min-w-0 truncate">{row.focus}</span>
                 </EnrichFieldCell>
               </div>
@@ -689,10 +643,7 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
                 role="cell"
                 className={`${cell} not-last:border-r-[0.5px] tabular-nums ${line}`}
               >
-                <EnrichFieldCell
-                  phase={employeesPhase}
-                  valueKey={row.employees}
-                >
+                <EnrichFieldCell phase={employeesPhase}>
                   <span className="min-w-0 truncate">{row.employees}</span>
                 </EnrichFieldCell>
               </div>
@@ -700,7 +651,7 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
                 role="cell"
                 className={`${cell} not-last:border-r-[0.5px] ${line}`}
               >
-                <EnrichFieldCell phase={hqPhase} valueKey={row.hq}>
+                <EnrichFieldCell phase={hqPhase}>
                   <span className="min-w-0 truncate">{row.hq}</span>
                 </EnrichFieldCell>
               </div>
@@ -708,21 +659,12 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
                 role="cell"
                 className={`${cell} not-last:border-r-[0.5px] tabular-nums ${line}`}
               >
-                <EnrichFieldCell phase={foundedPhase} valueKey={row.founded}>
+                <EnrichFieldCell phase={foundedPhase}>
                   <span className="min-w-0 truncate">{row.founded}</span>
                 </EnrichFieldCell>
               </div>
               <div role="cell" className={cell}>
-                <EnrichFieldCell
-                  phase={socialPhase}
-                  valueKey={
-                    row.social
-                      ? row.social.platform === "linkedin"
-                        ? row.social.url
-                        : row.social.username
-                      : ""
-                  }
-                >
+                <EnrichFieldCell phase={socialPhase}>
                   {row.social ? <SocialLinkCell social={row.social} /> : null}
                 </EnrichFieldCell>
               </div>
