@@ -145,6 +145,11 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
     width: number;
     height: number;
   } | null>(null);
+  const [countBadge, setCountBadge] = useState<{
+    top: number;
+    left: number;
+    place: "above" | "below";
+  } | null>(null);
   const [highlightColumn, setHighlightColumn] = useState(false);
   const [collapseRows, setCollapseRows] = useState(false);
   const bounds = selection ? selectionBounds(selection) : null;
@@ -155,6 +160,7 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
     setSelection(null);
     setMenuOpen(false);
     setMenuAnchor(null);
+    setCountBadge(null);
   }
 
   function openMenuForSelection(current: Selection) {
@@ -167,7 +173,7 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
     const tableRect = table.getBoundingClientRect();
     const cellRect = startCell.getBoundingClientRect();
     setMenuAnchor({
-      top: cellRect.top - tableRect.top,
+      top: cellRect.top - tableRect.top - 6,
       left: cellRect.right - tableRect.left,
       height: cellRect.height,
     });
@@ -178,25 +184,39 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
     const table = tableRef.current;
     if (!table || !selection) {
       setFrame(null);
+      setCountBadge(null);
       return;
     }
 
     const { from, to } = selectionBounds(selection);
     const first = table.querySelector<HTMLElement>(`[data-company-cell="${from}"]`);
     const last = table.querySelector<HTMLElement>(`[data-company-cell="${to}"]`);
-    if (!first || !last) {
+    const start = table.querySelector<HTMLElement>(
+      `[data-company-cell="${selection.start}"]`,
+    );
+    if (!first || !last || !start) {
       setFrame(null);
+      setCountBadge(null);
       return;
     }
 
     const tableRect = table.getBoundingClientRect();
     const startRect = first.getBoundingClientRect();
     const endRect = last.getBoundingClientRect();
+    const anchorRect = start.getBoundingClientRect();
     const top = Math.min(startRect.top, endRect.top) - tableRect.top;
     const left = Math.min(startRect.left, endRect.left) - tableRect.left;
     const right = Math.max(startRect.right, endRect.right) - tableRect.left;
     const bottom = Math.max(startRect.bottom, endRect.bottom) - tableRect.top;
     setFrame({ top, left, width: right - left, height: bottom - top });
+
+    const place = selection.end < selection.start ? "below" : "above";
+    setCountBadge({
+      top:
+        (place === "above" ? anchorRect.top : anchorRect.bottom) - tableRect.top,
+      left: Math.min(startRect.left, endRect.left) - tableRect.left,
+      place,
+    });
   }, [selection]);
 
   useEffect(() => {
@@ -298,7 +318,7 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
       aria-label="Companies"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
-      className="relative flex w-max max-w-full cursor-crosshair flex-col overflow-hidden rounded-[10px] border-[0.5px] border-[#e6e8ec] bg-[#fafafa] text-[13px] select-none dark:border-[#303030] dark:bg-[#242424] [&_a]:cursor-crosshair"
+      className="relative flex w-max max-w-full cursor-crosshair flex-col overflow-visible rounded-[10px] border-[0.5px] border-[#e6e8ec] bg-[#fafafa] text-[13px] select-none dark:border-[#303030] dark:bg-[#242424] [&_a]:cursor-crosshair"
     >
       <div role="rowgroup">
         <div role="row" className={`${columns} font-medium`}>
@@ -366,6 +386,22 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
           }}
         />
       ) : null}
+      {countBadge ? (
+        <div
+          aria-live="polite"
+          className="pointer-events-none absolute z-30 rounded-sm bg-[#4d7fe3] px-1.5 py-0.5 text-[11px] leading-none font-medium tabular-nums text-white"
+          style={{
+            top: countBadge.top,
+            left: countBadge.left,
+            transform:
+              countBadge.place === "above"
+                ? "translateY(calc(-100% - 4px))"
+                : "translateY(4px)",
+          }}
+        >
+          {selectedCount} selected
+        </div>
+      ) : null}
       {selection && menuAnchor ? (
         <DropdownMenu
           open={menuOpen}
@@ -395,7 +431,7 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
           <DropdownMenuContent
             side="right"
             align="start"
-            sideOffset={8}
+            sideOffset={0}
             className="min-w-56 cursor-default"
           >
             <DropdownMenuItem>Edit</DropdownMenuItem>
