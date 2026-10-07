@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { CompanyLogo } from "@/components/company-logos";
 
 type SocialLink =
@@ -103,12 +106,141 @@ function SocialLinkCell({ social }: { social: SocialLink }) {
   );
 }
 
+type Selection = { start: number; end: number };
+
+function selectionBounds(selection: Selection) {
+  return {
+    from: Math.min(selection.start, selection.end),
+    to: Math.max(selection.start, selection.end),
+  };
+}
+
 export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
+  const tableRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+  const anchor = useRef<number | null>(null);
+  const [selection, setSelection] = useState<Selection | null>(null);
+  const [frame, setFrame] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  const bounds = selection ? selectionBounds(selection) : null;
+
+  useLayoutEffect(() => {
+    const table = tableRef.current;
+    if (!table || !selection) {
+      setFrame(null);
+      return;
+    }
+
+    const { from, to } = selectionBounds(selection);
+    const first = table.querySelector<HTMLElement>(`[data-company-cell="${from}"]`);
+    const last = table.querySelector<HTMLElement>(`[data-company-cell="${to}"]`);
+    if (!first || !last) {
+      setFrame(null);
+      return;
+    }
+
+    const tableRect = table.getBoundingClientRect();
+    const startRect = first.getBoundingClientRect();
+    const endRect = last.getBoundingClientRect();
+    const top = Math.min(startRect.top, endRect.top) - tableRect.top;
+    const left = Math.min(startRect.left, endRect.left) - tableRect.left;
+    const right = Math.max(startRect.right, endRect.right) - tableRect.left;
+    const bottom = Math.max(startRect.bottom, endRect.bottom) - tableRect.top;
+    setFrame({ top, left, width: right - left, height: bottom - top });
+  }, [selection]);
+
+  useEffect(() => {
+    if (!selection) return;
+
+    function clearSelection() {
+      setSelection(null);
+    }
+
+    function onPointerDown(event: PointerEvent) {
+      if (dragging.current) return;
+      const table = tableRef.current;
+      if (!table) return;
+      if (table.contains(event.target as Node)) return;
+      clearSelection();
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") clearSelection();
+    }
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [selection]);
+
+  function endIndexAt(y: number, start: number) {
+    const nodes = tableRef.current?.querySelectorAll<HTMLElement>("[data-company-row]");
+    if (!nodes?.length || !nodes[start]) return null;
+
+    const startMid =
+      nodes[start].getBoundingClientRect().top + nodes[start].getBoundingClientRect().height / 2;
+
+    if (y >= startMid) {
+      let end = start;
+      for (let index = start; index < nodes.length; index++) {
+        const rect = nodes[index].getBoundingClientRect();
+        if (y >= rect.top + rect.height / 2) end = index;
+      }
+      return end;
+    }
+
+    let end = start;
+    for (let index = start; index >= 0; index--) {
+      const rect = nodes[index].getBoundingClientRect();
+      if (y <= rect.top + rect.height / 2) end = index;
+    }
+    return end;
+  }
+
+  function onPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (event.button !== 0) return;
+    const row = (event.target as HTMLElement).closest<HTMLElement>("[data-company-row]");
+    if (!row) {
+      setSelection(null);
+      return;
+    }
+    event.preventDefault();
+    const index = Number(row.dataset.companyRow);
+    dragging.current = true;
+    anchor.current = index;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setSelection({ start: index, end: index });
+  }
+
+  function onPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (!dragging.current || anchor.current == null) return;
+    const index = endIndexAt(event.clientY, anchor.current);
+    if (index == null) return;
+    setSelection((current) => (current && current.end !== index ? { ...current, end: index } : current));
+  }
+
+  function onPointerUp() {
+    dragging.current = false;
+    anchor.current = null;
+  }
+
   return (
     <div
+      ref={tableRef}
       role="table"
       aria-label="Companies"
-      className="flex w-max max-w-full flex-col overflow-hidden rounded-[10px] bg-[#fafafa] text-[13px] dark:bg-[#242424]"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      className="relative flex w-max max-w-full cursor-crosshair flex-col overflow-hidden rounded-[10px] border-[0.5px] border-[#e6e8ec] bg-[#fafafa] text-[13px] select-none dark:border-[#303030] dark:bg-[#242424] [&_a]:cursor-crosshair"
     >
       <div role="rowgroup">
         <div role="row" className={`${columns} font-medium`}>
@@ -127,13 +259,20 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
         role="rowgroup"
         className={`-mx-[0.5px] -mb-[0.5px] flex flex-col rounded-t-[10px] border-[0.5px] bg-white dark:bg-[#1a1a1a] ${line}`}
       >
-        {rows.map((row) => (
+        {rows.map((row, index) => (
           <div
             key={row.id}
             role="row"
+            data-company-row={index}
             className={`${columns} not-last:border-b-[0.5px] ${line}`}
           >
-            <div role="cell" className={`${cell} not-last:border-r-[0.5px] ${line}`}>
+            <div
+              role="cell"
+              data-company-cell={index}
+              className={`${cell} not-last:border-r-[0.5px] ${line} ${
+                bounds && index >= bounds.from && index <= bounds.to ? "bg-[#e8f2ff] dark:bg-[#13283f]" : ""
+              }`}
+            >
               <span className="flex min-w-0 items-center gap-2.5">
                 <CompanyLogo id={row.id} className="h-4 w-4 shrink-0" />
                 <span className="min-w-0 truncate">{row.name}</span>
@@ -157,6 +296,18 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
           </div>
         ))}
       </div>
+      {frame ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute z-10 border-2 border-[#4d7fe3]"
+          style={{
+            top: frame.top,
+            left: frame.left,
+            width: frame.width,
+            height: frame.height,
+          }}
+        />
+      ) : null}
     </div>
   );
 }
