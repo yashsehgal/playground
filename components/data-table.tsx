@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { CompanyLogo } from "@/components/company-logos";
 import {
   DropdownMenu,
@@ -43,10 +49,192 @@ export const companies: DataTableRow[] = [
   { id: "framer", name: "Framer", focus: "Web design", employees: "495", hq: "Amsterdam", founded: "2014", social: { platform: "x", username: "framer" } },
 ];
 
+/** Resolved company details used by the Enrich rows prototype. */
+const enrichmentById: Record<
+  string,
+  Pick<DataTableRow, "focus" | "employees" | "hq" | "founded" | "social">
+> = {
+  claude: {
+    focus: "AI assistant",
+    employees: "6,070",
+    hq: "San Francisco",
+    founded: "2023",
+    social: {
+      platform: "linkedin",
+      url: "https://www.linkedin.com/company/anthropicresearch",
+    },
+  },
+  openai: {
+    focus: "AI research",
+    employees: "10,828",
+    hq: "San Francisco",
+    founded: "2015",
+    social: { platform: "x", username: "OpenAI" },
+  },
+  supabase: {
+    focus: "Backend platform",
+    employees: "442",
+    hq: "San Francisco",
+    founded: "2020",
+    social: { platform: "x", username: "supabase" },
+  },
+  linear: {
+    focus: "Issue tracking",
+    employees: "193",
+    hq: "San Francisco",
+    founded: "2019",
+    social: {
+      platform: "linkedin",
+      url: "https://www.linkedin.com/company/linearapp",
+    },
+  },
+  vercel: {
+    focus: "Frontend cloud",
+    employees: "1,026",
+    hq: "San Francisco",
+    founded: "2015",
+    social: { platform: "x", username: "vercel" },
+  },
+  notion: {
+    focus: "Team workspace",
+    employees: "7,124",
+    hq: "San Francisco",
+    founded: "2013",
+    social: {
+      platform: "linkedin",
+      url: "https://www.linkedin.com/company/notionhq",
+    },
+  },
+  stripe: {
+    focus: "Payments",
+    employees: "16,597",
+    hq: "South San Francisco",
+    founded: "2010",
+    social: { platform: "x", username: "stripe" },
+  },
+};
+
+type EnrichField = "focus" | "employees" | "hq" | "founded" | "social";
+type EnrichPhase = "enriching" | "searching" | "verifying";
+
+const ENRICH_FIELDS: EnrichField[] = [
+  "focus",
+  "employees",
+  "hq",
+  "founded",
+  "social",
+];
+
+const enrichPhaseCopy: Record<EnrichPhase, string> = {
+  enriching: "Enriching...",
+  searching: "Searching...",
+  verifying: "Verifying...",
+};
+
+const enrichPhaseSwatch: Record<EnrichPhase, string> = {
+  enriching: "bg-[#c49216]",
+  searching: "bg-[#2f7fc4]",
+  verifying: "bg-[#1f9a57]",
+};
+
+function cellKey(rowId: string, field: EnrichField) {
+  return `${rowId}:${field}`;
+}
+
+function isFieldEmpty(row: DataTableRow, field: EnrichField) {
+  if (field === "social") return !row.social;
+  return row[field].trim() === "";
+}
+
+function randomDelay(min: number, max: number) {
+  return min + Math.random() * (max - min);
+}
+
+function wait(ms: number) {
+  return new Promise<void>((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+function Crossfade({
+  signal,
+  children,
+}: {
+  signal: string;
+  children: ReactNode;
+}) {
+  const [outgoing, setOutgoing] = useState<ReactNode | null>(null);
+  const signalRef = useRef(signal);
+  const lastPaintedRef = useRef(children);
+
+  useEffect(() => {
+    if (signal === signalRef.current) {
+      lastPaintedRef.current = children;
+      return;
+    }
+
+    const previous = lastPaintedRef.current;
+    signalRef.current = signal;
+    lastPaintedRef.current = children;
+    setOutgoing(previous);
+    const id = window.setTimeout(() => setOutgoing(null), 320);
+    return () => window.clearTimeout(id);
+  }, [signal, children]);
+
+  return (
+    <span className="relative flex min-h-5 min-w-0 items-center">
+      {outgoing ? (
+        <span
+          aria-hidden
+          className="absolute inset-0 flex min-w-0 items-center motion-safe:animate-out motion-safe:fade-out-0 motion-safe:blur-out-[6px] motion-safe:duration-300 motion-safe:ease-out motion-safe:fill-mode-forwards motion-reduce:opacity-0"
+        >
+          {outgoing}
+        </span>
+      ) : null}
+      <span
+        key={signal}
+        className="flex min-w-0 items-center motion-safe:animate-in motion-safe:fade-in-0 motion-safe:blur-in-[6px] motion-safe:duration-300 motion-safe:ease-out motion-reduce:animate-none"
+      >
+        {children}
+      </span>
+    </span>
+  );
+}
+
+function EnrichStatusContent({ phase }: { phase: EnrichPhase }) {
+  return (
+    <span className="flex min-w-0 items-center gap-1.5 text-black dark:text-white">
+      <span
+        aria-hidden
+        className={`size-2 shrink-0 rounded-[2px] ${enrichPhaseSwatch[phase]}`}
+      />
+      <span className="min-w-0 truncate">{enrichPhaseCopy[phase]}</span>
+    </span>
+  );
+}
+
+function EnrichFieldCell({
+  phase,
+  valueKey,
+  children,
+}: {
+  phase?: EnrichPhase;
+  valueKey: string;
+  children: ReactNode;
+}) {
+  const signal = phase ? `status:${phase}` : `value:${valueKey}`;
+
+  return (
+    <Crossfade signal={signal}>
+      {phase ? <EnrichStatusContent phase={phase} /> : children}
+    </Crossfade>
+  );
+}
+
 const HEADERS = ["Company", "Focus", "Employees", "HQ", "Founded", "Social Links"] as const;
 
 const line = "border-[#e6e8ec] dark:border-[#303030]";
-const columns = "grid grid-cols-[8rem_9.25rem_6.75rem_10.5rem_5.75rem_16rem]";
+const columns = "grid grid-cols-[8rem_9.25rem_7.5rem_10.5rem_8.25rem_13rem]";
 const cellBase = "flex h-8 min-w-0 items-center overflow-hidden pl-2.5 pr-3.5";
 const cell = `${cellBase} text-[#1a1a1a] dark:text-[#f5f5f5]`;
 const headCell = `${cellBase} text-black dark:text-white`;
@@ -132,6 +320,11 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
   const dragging = useRef(false);
   const anchor = useRef<number | null>(null);
   const selectionRef = useRef<Selection | null>(null);
+  const enrichRunRef = useRef(0);
+  const [tableRows, setTableRows] = useState(rows);
+  const [cellPhases, setCellPhases] = useState<
+    Partial<Record<string, EnrichPhase>>
+  >({});
   const [selection, setSelection] = useState<Selection | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<{
@@ -156,11 +349,127 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
   const selectedCount = bounds ? bounds.to - bounds.from + 1 : 0;
   selectionRef.current = selection;
 
+  useEffect(() => {
+    setTableRows(rows);
+  }, [rows]);
+
+  useEffect(() => {
+    return () => {
+      enrichRunRef.current += 1;
+    };
+  }, []);
+
   function clearSelection() {
     setSelection(null);
     setMenuOpen(false);
     setMenuAnchor(null);
     setCountBadge(null);
+  }
+
+  function setPhase(key: string, phase: EnrichPhase | null) {
+    setCellPhases((current) => {
+      if (phase === null) {
+        if (!(key in current)) return current;
+        const next = { ...current };
+        delete next[key];
+        return next;
+      }
+      return { ...current, [key]: phase };
+    });
+  }
+
+  async function enrichCell(
+    runId: number,
+    rowId: string,
+    field: EnrichField,
+    resolved: NonNullable<(typeof enrichmentById)[string]>,
+  ) {
+    const key = cellKey(rowId, field);
+    setPhase(key, "enriching");
+
+    await wait(randomDelay(2200, 3000));
+    if (enrichRunRef.current !== runId) return;
+    setPhase(key, "searching");
+
+    await wait(randomDelay(2400, 3400));
+    if (enrichRunRef.current !== runId) return;
+
+    // Slightly fewer cells than total include a verifying step.
+    if (Math.random() < 0.55) {
+      setPhase(key, "verifying");
+      await wait(randomDelay(2000, 2800));
+      if (enrichRunRef.current !== runId) return;
+    }
+
+    setTableRows((current) =>
+      current.map((row) => {
+        if (row.id !== rowId) return row;
+        if (field === "social") return { ...row, social: resolved.social };
+        return { ...row, [field]: resolved[field] };
+      }),
+    );
+    setPhase(key, null);
+  }
+
+  function startEnrichRows() {
+    if (!bounds) return;
+    const runId = enrichRunRef.current + 1;
+    enrichRunRef.current = runId;
+    clearSelection();
+
+    const queue: {
+      rowId: string;
+      field: EnrichField;
+      resolved: NonNullable<(typeof enrichmentById)[string]>;
+      rowIndex: number;
+      colIndex: number;
+    }[] = [];
+
+    for (let index = bounds.from; index <= bounds.to; index++) {
+      const row = tableRows[index];
+      if (!row) continue;
+      const resolved = enrichmentById[row.id];
+      if (!resolved) continue;
+
+      for (const [colIndex, field] of ENRICH_FIELDS.entries()) {
+        if (!isFieldEmpty(row, field)) continue;
+        queue.push({
+          rowId: row.id,
+          field,
+          resolved,
+          rowIndex: index,
+          colIndex,
+        });
+      }
+    }
+
+    if (queue.length === 0) return;
+
+    let originRow = queue[0]!.rowIndex;
+    let originCol = queue[0]!.colIndex;
+    for (const job of queue) {
+      if (
+        job.rowIndex < originRow ||
+        (job.rowIndex === originRow && job.colIndex < originCol)
+      ) {
+        originRow = job.rowIndex;
+        originCol = job.colIndex;
+      }
+    }
+
+    const rippleStepMs = 55;
+    for (const job of queue) {
+      const distance = Math.max(
+        Math.abs(job.rowIndex - originRow),
+        Math.abs(job.colIndex - originCol),
+      );
+      const startAfter = distance * rippleStepMs;
+      void (async () => {
+        if (startAfter > 0) await wait(startAfter);
+        if (enrichRunRef.current !== runId) return;
+        await enrichCell(runId, job.rowId, job.field, job.resolved);
+      })();
+    }
   }
 
   function openMenuForSelection(current: Selection) {
@@ -337,42 +646,86 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
         role="rowgroup"
         className={`-mx-[0.5px] -mb-[0.5px] flex flex-col rounded-t-[10px] border-[0.5px] bg-white dark:bg-[#1a1a1a] ${line}`}
       >
-        {rows.map((row, index) => (
-          <div
-            key={row.id}
-            role="row"
-            data-company-row={index}
-            className={`${columns} not-last:border-b-[0.5px] ${line}`}
-          >
+        {tableRows.map((row, index) => {
+          const focusPhase = cellPhases[cellKey(row.id, "focus")];
+          const employeesPhase = cellPhases[cellKey(row.id, "employees")];
+          const hqPhase = cellPhases[cellKey(row.id, "hq")];
+          const foundedPhase = cellPhases[cellKey(row.id, "founded")];
+          const socialPhase = cellPhases[cellKey(row.id, "social")];
+
+          return (
             <div
-              role="cell"
-              data-company-cell={index}
-              className={`${cell} not-last:border-r-[0.5px] ${line} ${
-                bounds && index >= bounds.from && index <= bounds.to ? "bg-[#e8f2ff] dark:bg-[#13283f]" : ""
-              }`}
+              key={row.id}
+              role="row"
+              data-company-row={index}
+              className={`${columns} not-last:border-b-[0.5px] ${line}`}
             >
-              <span className="flex min-w-0 items-center gap-2.5">
-                <CompanyLogo id={row.id} className="h-4 w-4 shrink-0" />
-                <span className="min-w-0 truncate">{row.name}</span>
-              </span>
+              <div
+                role="cell"
+                data-company-cell={index}
+                className={`${cell} not-last:border-r-[0.5px] ${line} ${
+                  bounds && index >= bounds.from && index <= bounds.to
+                    ? "bg-[#e8f2ff] dark:bg-[#13283f]"
+                    : ""
+                }`}
+              >
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <CompanyLogo id={row.id} className="h-4 w-4 shrink-0" />
+                  <span className="min-w-0 truncate">{row.name}</span>
+                </span>
+              </div>
+              <div
+                role="cell"
+                className={`${cell} not-last:border-r-[0.5px] ${line}`}
+              >
+                <EnrichFieldCell phase={focusPhase} valueKey={row.focus}>
+                  <span className="min-w-0 truncate">{row.focus}</span>
+                </EnrichFieldCell>
+              </div>
+              <div
+                role="cell"
+                className={`${cell} not-last:border-r-[0.5px] tabular-nums ${line}`}
+              >
+                <EnrichFieldCell
+                  phase={employeesPhase}
+                  valueKey={row.employees}
+                >
+                  <span className="min-w-0 truncate">{row.employees}</span>
+                </EnrichFieldCell>
+              </div>
+              <div
+                role="cell"
+                className={`${cell} not-last:border-r-[0.5px] ${line}`}
+              >
+                <EnrichFieldCell phase={hqPhase} valueKey={row.hq}>
+                  <span className="min-w-0 truncate">{row.hq}</span>
+                </EnrichFieldCell>
+              </div>
+              <div
+                role="cell"
+                className={`${cell} not-last:border-r-[0.5px] tabular-nums ${line}`}
+              >
+                <EnrichFieldCell phase={foundedPhase} valueKey={row.founded}>
+                  <span className="min-w-0 truncate">{row.founded}</span>
+                </EnrichFieldCell>
+              </div>
+              <div role="cell" className={cell}>
+                <EnrichFieldCell
+                  phase={socialPhase}
+                  valueKey={
+                    row.social
+                      ? row.social.platform === "linkedin"
+                        ? row.social.url
+                        : row.social.username
+                      : ""
+                  }
+                >
+                  {row.social ? <SocialLinkCell social={row.social} /> : null}
+                </EnrichFieldCell>
+              </div>
             </div>
-            <div role="cell" className={`${cell} not-last:border-r-[0.5px] ${line}`}>
-              <span className="min-w-0 truncate">{row.focus}</span>
-            </div>
-            <div role="cell" className={`${cell} not-last:border-r-[0.5px] tabular-nums ${line}`}>
-              <span className="min-w-0 truncate">{row.employees}</span>
-            </div>
-            <div role="cell" className={`${cell} not-last:border-r-[0.5px] ${line}`}>
-              <span className="min-w-0 truncate">{row.hq}</span>
-            </div>
-            <div role="cell" className={`${cell} not-last:border-r-[0.5px] tabular-nums ${line}`}>
-              <span className="min-w-0 truncate">{row.founded}</span>
-            </div>
-            <div role="cell" className={cell}>
-              {row.social ? <SocialLinkCell social={row.social} /> : null}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       {frame ? (
         <div
@@ -411,8 +764,8 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
             if (open) return;
             setMenuAnchor(null);
             if (
-              details.reason === "outsidePress" ||
-              details.reason === "escapeKey"
+              details.reason === "outside-press" ||
+              details.reason === "escape-key"
             ) {
               clearSelection();
             }
@@ -443,7 +796,11 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                startEnrichRows();
+              }}
+            >
               Enrich {selectedCount} {selectedCount === 1 ? "row" : "rows"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
