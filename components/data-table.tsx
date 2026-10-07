@@ -2,6 +2,17 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { CompanyLogo } from "@/components/company-logos";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type SocialLink =
   | { platform: "linkedin"; url: string }
@@ -117,16 +128,51 @@ function selectionBounds(selection: Selection) {
 
 export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
   const tableRef = useRef<HTMLDivElement>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const dragging = useRef(false);
   const anchor = useRef<number | null>(null);
+  const selectionRef = useRef<Selection | null>(null);
   const [selection, setSelection] = useState<Selection | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState<{
+    top: number;
+    left: number;
+    height: number;
+  } | null>(null);
   const [frame, setFrame] = useState<{
     top: number;
     left: number;
     width: number;
     height: number;
   } | null>(null);
+  const [highlightColumn, setHighlightColumn] = useState(false);
+  const [collapseRows, setCollapseRows] = useState(false);
   const bounds = selection ? selectionBounds(selection) : null;
+  const selectedCount = bounds ? bounds.to - bounds.from + 1 : 0;
+  selectionRef.current = selection;
+
+  function clearSelection() {
+    setSelection(null);
+    setMenuOpen(false);
+    setMenuAnchor(null);
+  }
+
+  function openMenuForSelection(current: Selection) {
+    const table = tableRef.current;
+    if (!table) return;
+    const startCell = table.querySelector<HTMLElement>(
+      `[data-company-cell="${current.start}"]`,
+    );
+    if (!startCell) return;
+    const tableRect = table.getBoundingClientRect();
+    const cellRect = startCell.getBoundingClientRect();
+    setMenuAnchor({
+      top: cellRect.top - tableRect.top,
+      left: cellRect.right - tableRect.left,
+      height: cellRect.height,
+    });
+    setMenuOpen(true);
+  }
 
   useLayoutEffect(() => {
     const table = tableRef.current;
@@ -154,17 +200,21 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
   }, [selection]);
 
   useEffect(() => {
-    if (!selection) return;
-
-    function clearSelection() {
-      setSelection(null);
+    function finishDrag() {
+      if (!dragging.current) return;
+      dragging.current = false;
+      anchor.current = null;
+      const current = selectionRef.current;
+      if (current) openMenuForSelection(current);
     }
 
     function onPointerDown(event: PointerEvent) {
       if (dragging.current) return;
-      const table = tableRef.current;
-      if (!table) return;
-      if (table.contains(event.target as Node)) return;
+      if (!selectionRef.current) return;
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (tableRef.current?.contains(target)) return;
+      if ((target as Element).closest?.("[data-slot^='dropdown-menu']")) return;
       clearSelection();
     }
 
@@ -172,13 +222,19 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
       if (event.key === "Escape") clearSelection();
     }
 
+    window.addEventListener("pointerup", finishDrag);
+    window.addEventListener("mouseup", finishDrag);
+    window.addEventListener("pointercancel", finishDrag);
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
     return () => {
+      window.removeEventListener("pointerup", finishDrag);
+      window.removeEventListener("mouseup", finishDrag);
+      window.removeEventListener("pointercancel", finishDrag);
       document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [selection]);
+  }, []);
 
   function endIndexAt(y: number, start: number) {
     const nodes = tableRef.current?.querySelectorAll<HTMLElement>("[data-company-row]");
@@ -206,29 +262,33 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
 
   function onPointerDown(event: React.PointerEvent<HTMLDivElement>) {
     if (event.button !== 0) return;
+    if ((event.target as HTMLElement).closest("[data-slot^='dropdown-menu']")) return;
     const row = (event.target as HTMLElement).closest<HTMLElement>("[data-company-row]");
     if (!row) {
-      setSelection(null);
+      clearSelection();
       return;
     }
     event.preventDefault();
     const index = Number(row.dataset.companyRow);
     dragging.current = true;
     anchor.current = index;
+    setMenuOpen(false);
+    setMenuAnchor(null);
     event.currentTarget.setPointerCapture(event.pointerId);
-    setSelection({ start: index, end: index });
+    const next = { start: index, end: index };
+    selectionRef.current = next;
+    setSelection(next);
   }
 
   function onPointerMove(event: React.PointerEvent<HTMLDivElement>) {
     if (!dragging.current || anchor.current == null) return;
     const index = endIndexAt(event.clientY, anchor.current);
     if (index == null) return;
-    setSelection((current) => (current && current.end !== index ? { ...current, end: index } : current));
-  }
-
-  function onPointerUp() {
-    dragging.current = false;
-    anchor.current = null;
+    const current = selectionRef.current;
+    if (!current || current.end === index) return;
+    const next = { ...current, end: index };
+    selectionRef.current = next;
+    setSelection(next);
   }
 
   return (
@@ -238,8 +298,6 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
       aria-label="Companies"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
       className="relative flex w-max max-w-full cursor-crosshair flex-col overflow-hidden rounded-[10px] border-[0.5px] border-[#e6e8ec] bg-[#fafafa] text-[13px] select-none dark:border-[#303030] dark:bg-[#242424] [&_a]:cursor-crosshair"
     >
       <div role="rowgroup">
@@ -307,6 +365,66 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
             height: frame.height,
           }}
         />
+      ) : null}
+      {selection && menuAnchor ? (
+        <DropdownMenu
+          open={menuOpen}
+          modal={false}
+          onOpenChange={(open, details) => {
+            setMenuOpen(open);
+            if (open) return;
+            setMenuAnchor(null);
+            if (
+              details.reason === "outsidePress" ||
+              details.reason === "escapeKey"
+            ) {
+              clearSelection();
+            }
+          }}
+        >
+          <DropdownMenuTrigger
+            ref={menuTriggerRef}
+            aria-label="Selection actions"
+            className="absolute z-20 w-2 opacity-0"
+            style={{
+              top: menuAnchor.top,
+              left: menuAnchor.left,
+              height: menuAnchor.height,
+            }}
+          />
+          <DropdownMenuContent
+            side="right"
+            align="start"
+            sideOffset={8}
+            className="min-w-56 cursor-default"
+          >
+            <DropdownMenuItem>Edit</DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>Copy</DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="min-w-40">
+                <DropdownMenuItem>Copy name</DropdownMenuItem>
+                <DropdownMenuItem>Copy link</DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              Enrich {selectedCount} {selectedCount === 1 ? "row" : "rows"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuCheckboxItem
+              checked={highlightColumn}
+              onCheckedChange={setHighlightColumn}
+            >
+              Highlight cells
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={collapseRows}
+              onCheckedChange={setCollapseRows}
+            >
+              Collapse rows
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       ) : null}
     </div>
   );
