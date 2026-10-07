@@ -19,6 +19,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import styles from "./data-table.module.css";
 
 type SocialLink =
   | { platform: "linkedin"; url: string }
@@ -156,7 +157,7 @@ function wait(ms: number) {
   });
 }
 
-function Crossfade({
+function SlideSwap({
   signal,
   children,
 }: {
@@ -177,23 +178,23 @@ function Crossfade({
     signalRef.current = signal;
     lastPaintedRef.current = children;
     setOutgoing(previous);
-    const id = window.setTimeout(() => setOutgoing(null), 320);
+    const id = window.setTimeout(() => setOutgoing(null), 200);
     return () => window.clearTimeout(id);
   }, [signal, children]);
 
   return (
-    <span className="relative flex min-h-5 min-w-0 items-center">
+    <span className="relative flex h-5 min-w-0 items-center overflow-hidden">
       {outgoing ? (
         <span
           aria-hidden
-          className="absolute inset-0 flex min-w-0 items-center motion-safe:animate-out motion-safe:fade-out-0 motion-safe:blur-out-[6px] motion-safe:duration-300 motion-safe:ease-out motion-safe:fill-mode-forwards motion-reduce:opacity-0"
+          className="absolute inset-0 flex min-w-0 items-center motion-safe:animate-out motion-safe:fade-out-0 motion-safe:slide-out-to-top-2 motion-safe:duration-200 motion-safe:ease-out motion-safe:fill-mode-forwards motion-reduce:opacity-0"
         >
           {outgoing}
         </span>
       ) : null}
       <span
         key={signal}
-        className="flex min-w-0 items-center motion-safe:animate-in motion-safe:fade-in-0 motion-safe:blur-in-[6px] motion-safe:duration-300 motion-safe:ease-out motion-reduce:animate-none"
+        className="flex min-w-0 items-center motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-200 motion-safe:ease-out motion-reduce:animate-none"
       >
         {children}
       </span>
@@ -208,7 +209,9 @@ function EnrichStatusContent({ phase }: { phase: EnrichPhase }) {
         aria-hidden
         className={`size-2 shrink-0 rounded-[2px] ${enrichPhaseSwatch[phase]}`}
       />
-      <span className="min-w-0 truncate">{enrichPhaseCopy[phase]}</span>
+      <span className={`min-w-0 truncate ${styles.shimmerText}`}>
+        {enrichPhaseCopy[phase]}
+      </span>
     </span>
   );
 }
@@ -225,9 +228,9 @@ function EnrichFieldCell({
   const signal = phase ? `status:${phase}` : `value:${valueKey}`;
 
   return (
-    <Crossfade signal={signal}>
+    <SlideSwap signal={signal}>
       {phase ? <EnrichStatusContent phase={phase} /> : children}
-    </Crossfade>
+    </SlideSwap>
   );
 }
 
