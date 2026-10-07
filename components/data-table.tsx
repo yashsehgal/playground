@@ -11,20 +11,20 @@ export type DataTableRow = {
   employees: string;
   hq: string;
   founded: string;
-  social: SocialLink;
+  social?: SocialLink;
 };
 
 export const companies: DataTableRow[] = [
   { id: "xai", name: "xAI", focus: "Frontier models", employees: "5,559", hq: "Palo Alto", founded: "2023", social: { platform: "x", username: "SpaceXAI" } },
   { id: "figma", name: "Figma", focus: "Interface design", employees: "3,134", hq: "San Francisco", founded: "2012", social: { platform: "linkedin", url: "https://www.linkedin.com/company/figma" } },
   { id: "cursor", name: "Cursor", focus: "Code editor", employees: "792", hq: "San Francisco", founded: "2022", social: { platform: "x", username: "cursor_ai" } },
-  { id: "claude", name: "Claude", focus: "AI assistant", employees: "6,070", hq: "San Francisco", founded: "2023", social: { platform: "linkedin", url: "https://www.linkedin.com/company/anthropicresearch" } },
-  { id: "openai", name: "OpenAI", focus: "AI research", employees: "10,828", hq: "San Francisco", founded: "2015", social: { platform: "x", username: "OpenAI" } },
-  { id: "supabase", name: "Supabase", focus: "Backend platform", employees: "442", hq: "San Francisco", founded: "2020", social: { platform: "x", username: "supabase" } },
-  { id: "linear", name: "Linear", focus: "Issue tracking", employees: "193", hq: "San Francisco", founded: "2019", social: { platform: "linkedin", url: "https://www.linkedin.com/company/linearapp" } },
-  { id: "vercel", name: "Vercel", focus: "Frontend cloud", employees: "1,026", hq: "San Francisco", founded: "2015", social: { platform: "x", username: "vercel" } },
-  { id: "notion", name: "Notion", focus: "Team workspace", employees: "7,124", hq: "San Francisco", founded: "2013", social: { platform: "linkedin", url: "https://www.linkedin.com/company/notionhq" } },
-  { id: "stripe", name: "Stripe", focus: "Payments", employees: "16,597", hq: "South San Francisco", founded: "2010", social: { platform: "x", username: "stripe" } },
+  { id: "claude", name: "Claude", focus: "", employees: "", hq: "", founded: "" },
+  { id: "openai", name: "OpenAI", focus: "", employees: "", hq: "", founded: "" },
+  { id: "supabase", name: "Supabase", focus: "", employees: "", hq: "", founded: "" },
+  { id: "linear", name: "Linear", focus: "", employees: "", hq: "", founded: "" },
+  { id: "vercel", name: "Vercel", focus: "", employees: "", hq: "", founded: "" },
+  { id: "notion", name: "Notion", focus: "", employees: "", hq: "", founded: "" },
+  { id: "stripe", name: "Stripe", focus: "", employees: "", hq: "", founded: "" },
   { id: "raycast", name: "Raycast", focus: "App launcher", employees: "40", hq: "London", founded: "2020", social: { platform: "linkedin", url: "https://www.linkedin.com/company/raycastapp" } },
   { id: "framer", name: "Framer", focus: "Web design", employees: "495", hq: "Amsterdam", founded: "2014", social: { platform: "x", username: "framer" } },
 ];
@@ -152,7 +152,7 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
               <span className="min-w-0 truncate">{row.founded}</span>
             </div>
             <div role="cell" className={cell}>
-              <SocialLinkCell social={row.social} />
+              {row.social ? <SocialLinkCell social={row.social} /> : null}
             </div>
           </div>
         ))}
