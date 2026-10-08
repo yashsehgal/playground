@@ -470,17 +470,21 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
     const startRect = first.getBoundingClientRect();
     const endRect = last.getBoundingClientRect();
     const anchorRect = start.getBoundingClientRect();
-    const top = Math.min(startRect.top, endRect.top) - tableRect.top;
-    const left = Math.min(startRect.left, endRect.left) - tableRect.left;
-    const right = Math.max(startRect.right, endRect.right) - tableRect.left;
-    const bottom = Math.max(startRect.bottom, endRect.bottom) - tableRect.top;
+    // Expand 1px so the outline covers table hairlines / dividers on the edge.
+    const pad = 1;
+    const top = Math.min(startRect.top, endRect.top) - tableRect.top - pad;
+    const left = Math.min(startRect.left, endRect.left) - tableRect.left - pad;
+    const right = Math.max(startRect.right, endRect.right) - tableRect.left + pad;
+    const bottom =
+      Math.max(startRect.bottom, endRect.bottom) - tableRect.top + pad;
     setFrame({ top, left, width: right - left, height: bottom - top });
 
     const place = selection.end < selection.start ? "below" : "above";
+    const anchorTop = anchorRect.top - tableRect.top - pad;
+    const anchorBottom = anchorRect.bottom - tableRect.top + pad;
     setCountBadge({
-      top:
-        (place === "above" ? anchorRect.top : anchorRect.bottom) - tableRect.top,
-      left: Math.min(startRect.left, endRect.left) - tableRect.left,
+      top: place === "above" ? anchorTop : anchorBottom,
+      left,
       place,
     });
   }, [selection]);
@@ -584,7 +588,7 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
       aria-label="Companies"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
-      className="relative flex w-max max-w-full cursor-crosshair flex-col overflow-visible rounded-b-[10px] border-[0.5px] border-[#e6e8ec] bg-[#fafafa] text-[13px] select-none dark:border-[#303030] dark:bg-[#242424] [&_a]:cursor-crosshair"
+      className="relative flex w-max cursor-crosshair flex-col overflow-visible rounded-[8px] border border-[#e6e8ec] bg-[#fafafa] text-[13px] select-none dark:border-[#303030] dark:bg-[#242424] [&_a]:cursor-crosshair"
     >
       <div role="rowgroup">
         <div role="row" className={`${columns} font-medium`}>
@@ -601,7 +605,7 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
       </div>
       <div
         role="rowgroup"
-        className={`-mx-[0.5px] -mb-[0.5px] flex flex-col border-[0.5px] bg-white dark:bg-[#1a1a1a] ${line}`}
+        className={`-mx-px -mb-px flex flex-col overflow-hidden rounded-b-[7px] border bg-white dark:bg-[#1a1a1a] ${line}`}
       >
         {tableRows.map((row, index) => {
           const focusPhase = cellPhases[cellKey(row.id, "focus")];
@@ -615,17 +619,17 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
               key={row.id}
               role="row"
               data-company-row={index}
-              className={`${columns} not-last:border-b-[0.5px] ${line}`}
-            >
+            className={`${columns} not-last:border-b-[0.5px] ${line}`}
+          >
               <div
-                role="cell"
-                data-company-cell={index}
-                className={`${cell} not-last:border-r-[0.5px] ${line} ${
-                  bounds && index >= bounds.from && index <= bounds.to
-                    ? "bg-[#e8f2ff] dark:bg-[#13283f]"
-                    : ""
-                }`}
-              >
+              role="cell"
+              data-company-cell={index}
+              className={`${cell} not-last:border-r-[0.5px] ${line} ${
+                bounds && index >= bounds.from && index <= bounds.to
+                  ? "bg-[#e8f2ff] dark:bg-[#13283f]"
+                  : ""
+              }`}
+            >
                 <span className="flex min-w-0 items-center gap-2.5">
                   <CompanyLogo id={row.id} className="h-4 w-4 shrink-0" />
                   <span className="min-w-0 truncate">{row.name}</span>
@@ -687,17 +691,15 @@ export function DataTable({ rows = companies }: { rows?: DataTableRow[] }) {
       {countBadge ? (
         <div
           aria-live="polite"
-          className="pointer-events-none absolute z-30 rounded-sm bg-[#4d7fe3] px-1.5 py-0.5 text-[11px] leading-none font-medium tabular-nums text-white"
+          className="pointer-events-none absolute z-30 flex items-center rounded-none bg-[#4d7fe3] px-[5px] pt-[5px] pb-[4px] text-[11px] leading-none font-medium tabular-nums text-white"
           style={{
             top: countBadge.top,
             left: countBadge.left,
             transform:
-              countBadge.place === "above"
-                ? "translateY(calc(-100% - 4px))"
-                : "translateY(4px)",
+              countBadge.place === "above" ? "translateY(-100%)" : undefined,
           }}
         >
-          {selectedCount} selected
+          <span className="block leading-none">{selectedCount} selected</span>
         </div>
       ) : null}
       {selection && menuAnchor ? (
