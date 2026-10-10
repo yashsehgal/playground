@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { AgentFace } from "@/components/agent-face";
 import { AssigneeMenu } from "@/components/assignee-menu";
 
@@ -68,40 +71,46 @@ export function Issues({ issues, assignable = false }: IssuesProps) {
     >
       <ul>
         {ordered.map((issue) => (
-          <li
-            key={issue.id}
-            className={`group rounded-sm px-3 py-2 ${assignable ? "" : "hover:bg-row dark:hover:bg-row-dark"}`}
-          >
-            <div className="grid grid-cols-[0.875rem_4.5rem_0.875rem_minmax(0,1fr)_auto] items-center gap-x-2.5">
-              <PriorityIcon priority={issue.priority} />
-              <span className="text-sm leading-5 text-muted tabular-nums dark:text-muted-dark">
-                {issue.key}
-              </span>
-              <StatusIcon status={issue.status} />
-              <span className="truncate text-sm leading-5 font-medium">
-                {issue.title}
-              </span>
-              {issue.pullRequest ? (
-                <span className="inline-flex items-center gap-1 rounded-sm bg-mention-bg px-1.5 text-sm leading-5 text-mention tabular-nums dark:bg-mention-bg-dark dark:text-mention-dark">
-                  <BranchIcon />
-                  {issue.pullRequest}
-                </span>
-              ) : null}
-            </div>
-            <div className="mt-1.5 grid grid-cols-[0.875rem_4.5rem_0.875rem_minmax(0,1fr)] gap-x-2.5">
-              {assignable ? (
-                <AssigneeMenu />
-              ) : (
-                <p className="col-start-4 flex min-w-0 items-center gap-2 text-sm leading-5 text-muted dark:text-muted-dark">
-                  <AgentStack agents={issue.assignees} />
-                  <span className="truncate">{issue.activity}</span>
-                </p>
-              )}
-            </div>
-          </li>
+          <IssueRow key={issue.id} issue={issue} assignable={assignable} />
         ))}
       </ul>
     </section>
+  );
+}
+
+function IssueRow({ issue, assignable }: { issue: Issue; assignable: boolean }) {
+  const [status, setStatus] = useState(issue.status);
+  const shown = assignable ? status : issue.status;
+
+  return (
+    <li
+      className={`group rounded-sm px-3 py-2 ${assignable ? "" : "hover:bg-row dark:hover:bg-row-dark"}`}
+    >
+      <div className="grid grid-cols-[0.875rem_4.5rem_0.875rem_minmax(0,1fr)_auto] items-center gap-x-2.5">
+        <PriorityIcon priority={issue.priority} />
+        <span className="text-sm leading-5 text-muted tabular-nums dark:text-muted-dark">
+          {issue.key}
+        </span>
+        <StatusIcon status={shown} />
+        <span className="truncate text-sm leading-5 font-medium">{issue.title}</span>
+        {issue.pullRequest ? (
+          <span className="inline-flex items-center gap-1 rounded-sm bg-mention-bg px-1.5 text-sm leading-5 text-mention tabular-nums dark:bg-mention-bg-dark dark:text-mention-dark">
+            <BranchIcon />
+            {issue.pullRequest}
+          </span>
+        ) : null}
+      </div>
+      <div className="mt-1.5 grid grid-cols-[0.875rem_4.5rem_0.875rem_minmax(0,1fr)] gap-x-2.5">
+        {assignable ? (
+          <AssigneeMenu onProgress={() => setStatus("progress")} />
+        ) : (
+          <p className="col-start-4 flex min-w-0 items-center gap-2 text-sm leading-5 text-muted dark:text-muted-dark">
+            <AgentStack agents={issue.assignees} />
+            <span className="truncate">{issue.activity}</span>
+          </p>
+        )}
+      </div>
+    </li>
   );
 }
 
@@ -170,19 +179,38 @@ function PriorityIcon({ priority }: { priority: IssuePriority }) {
   );
 }
 
+const statusMorph =
+  "transition-[opacity,filter,scale] duration-300 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none";
+
+function statusLayer(visible: boolean) {
+  return `${statusMorph} ${
+    visible ? "scale-100 opacity-100 blur-[0px]" : "pointer-events-none scale-[0.25] opacity-0 blur-[4px]"
+  }`;
+}
+
 function StatusIcon({ status }: { status: IssueStatus }) {
-  const color = {
-    todo: "text-status-todo dark:text-status-todo-dark",
-    progress: "text-progress dark:text-progress-dark",
-    review: "text-review dark:text-review-dark",
-  }[status];
+  if (status === "review") {
+    return (
+      <span className="text-review dark:text-review-dark">
+        <span className="sr-only">{statusLabel.review}</span>
+        <ReviewIcon />
+      </span>
+    );
+  }
+
+  const progress = status === "progress";
 
   return (
-    <span className={color}>
+    <span className="relative grid size-3.5 place-items-center">
       <span className="sr-only">{statusLabel[status]}</span>
-      {status === "todo" ? <TodoIcon /> : null}
-      {status === "progress" ? <ProgressIcon /> : null}
-      {status === "review" ? <ReviewIcon /> : null}
+      <span className={`text-status-todo dark:text-status-todo-dark ${statusLayer(!progress)}`}>
+        <TodoIcon />
+      </span>
+      <span
+        className={`absolute inset-0 grid place-items-center text-progress dark:text-progress-dark ${statusLayer(progress)}`}
+      >
+        <ProgressIcon />
+      </span>
     </span>
   );
 }

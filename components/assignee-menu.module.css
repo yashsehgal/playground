@@ -8,28 +8,36 @@
 
 @keyframes agent-hop {
   0% {
-    transform: translateY(7px) scale(0.84, 0.9);
+    transform: translateY(0.5em) scale(0.84, 0.9);
   }
   36% {
-    transform: translateY(-8px) scale(1.05, 1.1);
+    transform: translateY(-0.57em) scale(1.05, 1.1);
   }
   58% {
-    transform: translateY(1px) scale(1.02, 0.94);
+    transform: translateY(0.07em) scale(1.02, 0.94);
   }
   78% {
-    transform: translateY(-3px) scale(1, 1.04);
+    transform: translateY(-0.21em) scale(1, 1.04);
   }
   100% {
     transform: translateY(0) scale(1);
   }
 }
 
-.stack {
+.stack,
+.featuredStack {
   display: flex;
   flex: none;
   align-items: center;
   height: 1em;
+}
+
+.stack {
   font-size: 0.875rem;
+}
+
+.featuredStack {
+  font-size: 3.25rem;
 }
 
 .face {
@@ -65,7 +73,7 @@
 @keyframes log-in {
   from {
     opacity: 0;
-    transform: translateY(5px);
+    transform: translateY(0.36em);
   }
   to {
     opacity: 1;

@@ -2,10 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AgentFace } from "@/components/agent-face";
+import { CodexLogo, CursorLogo, GrokLogo } from "@/components/external-agent-logos";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { agentList, agents, type Agent } from "@/lib/agents";
@@ -14,11 +17,30 @@ import styles from "./assignee-menu.module.css";
 const focus =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink/40 dark:focus-visible:outline-ink-dark/40";
 
-export function AssigneeMenu() {
-  const [assignee, setAssignee] = useState<Agent | null>(null);
+const logos = {
+  codex: CodexLogo,
+  cursor: CursorLogo,
+  grok: GrokLogo,
+} as const;
+
+type MenuAgent = Agent & { logo?: keyof typeof logos };
+
+const externalAgents: MenuAgent[] = [
+  { id: "codex", name: "Codex", role: "Coding agent", color: "oklch(0.78 0.06 145)", logo: "codex" },
+  { id: "cursor", name: "Cursor", role: "Coding agent", color: "oklch(0.78 0.05 250)", logo: "cursor" },
+  { id: "grok", name: "Grok Bot", role: "Assistant", color: "oklch(0.8 0.04 70)", logo: "grok" },
+];
+
+const agentGroups = [
+  { label: "Personal", agents: agentList },
+  { label: "External agents", agents: externalAgents },
+];
+
+export function AssigneeMenu({ onProgress }: { onProgress?: () => void }) {
+  const [assignee, setAssignee] = useState<MenuAgent | null>(null);
 
   if (assignee) {
-    return <AssignedAgent agent={assignee} />;
+    return <AssignedAgent agent={assignee} onProgress={onProgress} />;
   }
 
   return (
@@ -30,9 +52,16 @@ export function AssigneeMenu() {
         <PlusIcon />
         Add assignee
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" side="bottom" sideOffset={4}>
-        {agentList.map((agent) => (
-          <AssigneeOption key={agent.id} agent={agent} onSelect={setAssignee} />
+      <DropdownMenuContent align="start" side="bottom" sideOffset={4} className="min-w-60">
+        {agentGroups.map((group) => (
+          <DropdownMenuGroup key={group.label}>
+            <DropdownMenuLabel className="px-2 pt-1.5 pb-0.5 text-xs font-medium text-muted dark:text-muted-dark">
+              {group.label}
+            </DropdownMenuLabel>
+            {group.agents.map((agent) => (
+              <AssigneeOption key={agent.id} agent={agent} onSelect={setAssignee} />
+            ))}
+          </DropdownMenuGroup>
         ))}
       </DropdownMenuContent>
       </DropdownMenu>
@@ -45,7 +74,7 @@ function hold() {
 }
 
 function buildLog(name: string, inviteMia: boolean) {
-  const lines: { text: string; revealMia?: boolean }[] = [
+  const lines: { text: string; revealMia?: boolean; startProgress?: boolean }[] = [
     { text: `Assigned to ${name}` },
     { text: "Analyzing the task requirements" },
     { text: "Seems like a design-related task" },
@@ -59,7 +88,7 @@ function buildLog(name: string, inviteMia: boolean) {
   }
 
   lines.push(
-    { text: "Preparing a design document" },
+    { text: "Preparing a design document", startProgress: true },
     { text: "Started working on the issue" },
   );
 
@@ -71,18 +100,41 @@ function buildLog(name: string, inviteMia: boolean) {
   });
 }
 
-function AssignedAgent({ agent }: { agent: Agent }) {
+export function AssignmentPlayback() {
+  return (
+    <AssignedAgent
+      agent={agents.adam}
+      featured
+    />
+  );
+}
+
+function AssignedAgent({
+  agent,
+  onProgress,
+  featured = false,
+}: {
+  agent: MenuAgent;
+  onProgress?: () => void;
+  featured?: boolean;
+}) {
   const inviteMia = agent.id !== agents.mia.id;
   const [log] = useState(() => buildLog(agent.name, inviteMia));
   const [step, setStep] = useState(0);
   const [showMia, setShowMia] = useState(false);
+  const onProgressRef = useRef(onProgress);
   const current = log[step];
+
+  useEffect(() => {
+    onProgressRef.current = onProgress;
+  }, [onProgress]);
 
   useEffect(() => {
     const timers = log.slice(1).map((entry, index) =>
       window.setTimeout(() => {
         setStep(index + 1);
         if (entry.revealMia) setShowMia(true);
+        if (entry.startProgress) onProgressRef.current?.();
       }, entry.at),
     );
     return () => timers.forEach((timer) => window.clearTimeout(timer));
@@ -91,16 +143,20 @@ function AssignedAgent({ agent }: { agent: Agent }) {
   return (
     <p
       aria-live="polite"
-      className="col-start-4 flex min-h-7 min-w-0 items-center gap-2 text-sm leading-5 text-muted dark:text-muted-dark"
+      className={
+        featured
+          ? "flex items-center gap-[0.55em] text-[1.75rem] leading-tight text-muted dark:text-muted-dark"
+          : "col-start-4 flex min-h-7 min-w-0 items-center gap-2 text-sm leading-5 text-muted dark:text-muted-dark"
+      }
     >
-      <span className={styles.stack}>
+      <span className={featured ? styles.featuredStack : styles.stack}>
         <span className={styles.face}>
-          <AgentBlob agent={agent} />
+          <AgentBlob agent={agent} featured={featured} />
         </span>
         <span className={styles.more} data-open={showMia ? "" : undefined}>
           {showMia ? (
             <span className={`${styles.face} ${styles.partner}`}>
-              <AgentBlob agent={agents.mia} />
+              <AgentBlob agent={agents.mia} featured={featured} />
             </span>
           ) : null}
         </span>
@@ -112,7 +168,7 @@ function AssignedAgent({ agent }: { agent: Agent }) {
   );
 }
 
-function AgentBlob({ agent }: { agent: Agent }) {
+function AgentBlob({ agent, featured = false }: { agent: MenuAgent; featured?: boolean }) {
   const [landed, setLanded] = useState(false);
 
   useEffect(() => {
@@ -124,14 +180,31 @@ function AgentBlob({ agent }: { agent: Agent }) {
 
   return (
     <span className={styles.hop}>
-      <span className="block size-full overflow-hidden rounded-[4px] ring-2 ring-white dark:ring-surface-dark">
-        <AgentFace
-          agent={{ ...agent, shape: "square" }}
-          gaze={landed ? "wander" : "up"}
-          className="block size-full"
-        />
+      <span
+        className={`block size-full overflow-hidden rounded-[0.22em] ${
+          featured
+            ? "ring-[0.08em] ring-page dark:ring-page-dark"
+            : "ring-2 ring-white dark:ring-surface-dark"
+        }`}
+      >
+        <AgentMark agent={agent} gaze={landed ? "wander" : "up"} />
       </span>
     </span>
+  );
+}
+
+function AgentMark({ agent, gaze }: { agent: MenuAgent; gaze: "up" | "wander" }) {
+  if (agent.logo) {
+    const Logo = logos[agent.logo];
+    return <Logo className="block size-full" />;
+  }
+
+  return (
+    <AgentFace
+      agent={{ ...agent, shape: "square" }}
+      gaze={gaze}
+      className="block size-full"
+    />
   );
 }
 
@@ -139,8 +212,8 @@ function AssigneeOption({
   agent,
   onSelect,
 }: {
-  agent: Agent;
-  onSelect: (agent: Agent) => void;
+  agent: MenuAgent;
+  onSelect: (agent: MenuAgent) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [highlighted, setHighlighted] = useState(false);
@@ -162,13 +235,13 @@ function AssigneeOption({
       onClick={() => onSelect(agent)}
       className="grid! w-full grid-cols-[0.875rem_minmax(0,1fr)_auto] gap-x-2.5"
     >
-      <AgentFace
-        agent={agent}
-        gaze={highlighted ? "up" : "wander"}
-        className="block size-3.5"
-      />
+      <span className="block size-3.5">
+        <AgentMark agent={agent} gaze={highlighted ? "up" : "wander"} />
+      </span>
       <span className="font-medium">{agent.name}</span>
-      <span className="ms-auto text-end text-muted dark:text-muted-dark">{agent.role}</span>
+      {agent.logo ? null : (
+        <span className="ms-auto text-end text-muted dark:text-muted-dark">{agent.role}</span>
+      )}
     </DropdownMenuItem>
   );
 }
