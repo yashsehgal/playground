@@ -1,0 +1,32 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "message-queue",
+  "type": "registry:block",
+  "title": "Message Queue",
+  "description": "A chat composer with a queue for follow-up prompts: send now, edit, remove, reorder by drag or keyboard, run in parallel, or send in a new chat.",
+  "author": "Yash",
+  "categories": ["ai", "chat", "input"],
+  "dependencies": [],
+  "files": [
+    {
+      "path": "registry/message-queue/react/MessageQueue.tsx",
+      "type": "registry:component",
+      "target": "components/message-queue/react/MessageQueue.tsx"
+    },
+    {
+      "path": "registry/message-queue/core.ts",
+      "type": "registry:lib",
+      "target": "components/message-queue/core.ts"
+    },
+    {
+      "path": "registry/message-queue/icons.ts",
+      "type": "registry:lib",
+      "target": "components/message-queue/icons.ts"
+    },
+    {
+      "path": "registry/message-queue/message-queue.css",
+      "type": "registry:file",
+      "target": "components/message-queue/message-queue.css"
+    }
+  ]
+}

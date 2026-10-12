@@ -1,0 +1,70 @@
+.panel {
+  transform-origin: bottom center;
+  transition-property: opacity, transform;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.row {
+  height: 28px;
+  overflow: hidden;
+  transition-property: height, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.badge {
+  transform-origin: left center;
+  transition-property: opacity, transform;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.row[data-leaving="true"] {
+  height: 0;
+  opacity: 0;
+}
+
+@starting-style {
+  .panel {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+
+  .row {
+    height: 0;
+    opacity: 0;
+  }
+
+  .badge {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .row,
+  .badge {
+    transition-property: opacity;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
+  }
+
+  @starting-style {
+    .panel {
+      opacity: 0;
+      transform: none;
+    }
+
+    .row {
+      height: 28px;
+      opacity: 0;
+    }
+
+    .badge {
+      opacity: 0;
+      transform: none;
+    }
+  }
+}

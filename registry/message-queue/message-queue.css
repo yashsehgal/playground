@@ -1,0 +1,942 @@
+/*
+ * Message Queue — framework-agnostic styles.
+ * Every class is prefixed `mq-`. Every colour, radius, and curve is a
+ * `--mq-*` custom property on `.mq`, so theming never needs a selector fight.
+ * Dark mode follows the OS by default; `data-theme="light|dark"` on `.mq`, or a
+ * `.dark` ancestor, overrides it.
+ */
+
+.mq {
+  /* Surfaces */
+  --mq-surface: #fff;
+  --mq-shadow:
+    0 0 1px rgb(0 0 0 / 0.16),
+    0 1px 2px -1px rgb(0 0 0 / 0.08),
+    0 4px 12px -6px rgb(0 0 0 / 0.06);
+
+  /* Text */
+  --mq-ink: rgb(0 0 0 / 0.87);
+  --mq-ink-muted: rgb(0 0 0 / 0.6);
+  --mq-ink-subtle: rgb(0 0 0 / 0.5);
+  --mq-placeholder: #8a8a8a;
+
+  /* Fills */
+  --mq-fill-hover: rgb(0 0 0 / 0.06);
+  --mq-fill-editing: oklch(0.97 0 0);
+  --mq-control: #f2f2f2;
+  --mq-control-hover: #e7e7e7;
+  --mq-control-ink: #5c5c5c;
+  --mq-chip: #f2f2f2;
+  --mq-chip-ink: #4a4a4a;
+  --mq-chip-remove-hover: #fff;
+  --mq-primary: #1a1a1a;
+  --mq-primary-hover: #333;
+  --mq-on-primary: #fff;
+
+  /* Editing badge */
+  --mq-badge: #fdf4d3;
+  --mq-badge-ink: #8a6a10;
+  --mq-badge-hover: #f6e6a8;
+
+  /* Floating layers (inverted against the surface) */
+  --mq-layer: #171717;
+  --mq-layer-ink: #fff;
+  --mq-layer-hover: rgb(255 255 255 / 0.1);
+  --mq-layer-separator: rgb(255 255 255 / 0.12);
+  --mq-layer-kbd: rgb(255 255 255 / 0.55);
+  --mq-layer-shadow:
+    0 1px 2px -1px oklch(0 0 0 / 0.2),
+    0 8px 18px -12px oklch(0 0 0 / 0.35);
+  --mq-switch-off: rgb(255 255 255 / 0.2);
+  --mq-switch-on: #fff;
+  --mq-switch-thumb: #fff;
+  --mq-switch-thumb-on: #171717;
+
+  --mq-focus: rgb(0 0 0 / 0.4);
+
+  /* Shape */
+  --mq-radius-panel: 18px;
+  --mq-radius-composer: 24px;
+  --mq-radius-row: 8px;
+  --mq-radius-row-last: 12px;
+  --mq-radius-control: 6px;
+  --mq-radius-layer: 12px;
+
+  /* Motion */
+  --mq-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --mq-ease-enter: cubic-bezier(0.19, 1, 0.22, 1);
+  --mq-ease-icon: cubic-bezier(0.2, 0, 0, 1);
+  --mq-ease-hover: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --mq-duration: 150ms;
+
+  display: block;
+  width: 100%;
+  color: var(--mq-ink);
+  font-family: inherit;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mq[data-theme="dark"],
+:where(.dark) .mq:not([data-theme="light"]) {
+  --mq-surface: oklch(0.25 0.008 75);
+  --mq-shadow:
+    0 0 1px rgb(255 255 255 / 0.12),
+    0 1px 2px -1px rgb(0 0 0 / 0.3),
+    0 4px 12px -6px rgb(0 0 0 / 0.3);
+  --mq-ink: rgb(255 255 255 / 0.87);
+  --mq-ink-muted: rgb(255 255 255 / 0.6);
+  --mq-ink-subtle: rgb(255 255 255 / 0.5);
+  --mq-fill-hover: rgb(255 255 255 / 0.08);
+  --mq-fill-editing: rgb(255 255 255 / 0.06);
+  --mq-control: rgb(255 255 255 / 0.08);
+  --mq-control-hover: rgb(255 255 255 / 0.12);
+  --mq-control-ink: rgb(255 255 255 / 0.7);
+  --mq-chip: rgb(255 255 255 / 0.08);
+  --mq-chip-ink: rgb(255 255 255 / 0.75);
+  --mq-chip-remove-hover: rgb(255 255 255 / 0.12);
+  --mq-primary: oklch(0.93 0.008 75);
+  --mq-primary-hover: #fff;
+  --mq-on-primary: oklch(0.25 0.008 75);
+  --mq-badge: #3a2f12;
+  --mq-badge-ink: #e9c766;
+  --mq-badge-hover: #4d3f17;
+  --mq-layer: #fff;
+  --mq-layer-ink: #171717;
+  --mq-layer-hover: rgb(0 0 0 / 0.05);
+  --mq-layer-separator: rgb(0 0 0 / 0.1);
+  --mq-layer-kbd: rgb(0 0 0 / 0.5);
+  --mq-layer-shadow:
+    0 1px 2px -1px oklch(0 0 0 / 0.06),
+    0 8px 18px -12px oklch(0 0 0 / 0.12);
+  --mq-switch-off: rgb(0 0 0 / 0.15);
+  --mq-switch-on: #171717;
+  --mq-switch-thumb: #fff;
+  --mq-switch-thumb-on: #fff;
+  --mq-focus: rgb(255 255 255 / 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  .mq:not([data-theme="light"]) {
+    --mq-surface: oklch(0.25 0.008 75);
+    --mq-shadow:
+      0 0 1px rgb(255 255 255 / 0.12),
+      0 1px 2px -1px rgb(0 0 0 / 0.3),
+      0 4px 12px -6px rgb(0 0 0 / 0.3);
+    --mq-ink: rgb(255 255 255 / 0.87);
+    --mq-ink-muted: rgb(255 255 255 / 0.6);
+    --mq-ink-subtle: rgb(255 255 255 / 0.5);
+    --mq-fill-hover: rgb(255 255 255 / 0.08);
+    --mq-fill-editing: rgb(255 255 255 / 0.06);
+    --mq-control: rgb(255 255 255 / 0.08);
+    --mq-control-hover: rgb(255 255 255 / 0.12);
+    --mq-control-ink: rgb(255 255 255 / 0.7);
+    --mq-chip: rgb(255 255 255 / 0.08);
+    --mq-chip-ink: rgb(255 255 255 / 0.75);
+    --mq-chip-remove-hover: rgb(255 255 255 / 0.12);
+    --mq-primary: oklch(0.93 0.008 75);
+    --mq-primary-hover: #fff;
+    --mq-on-primary: oklch(0.25 0.008 75);
+    --mq-badge: #3a2f12;
+    --mq-badge-ink: #e9c766;
+    --mq-badge-hover: #4d3f17;
+    --mq-layer: #fff;
+    --mq-layer-ink: #171717;
+    --mq-layer-hover: rgb(0 0 0 / 0.05);
+    --mq-layer-separator: rgb(0 0 0 / 0.1);
+    --mq-layer-kbd: rgb(0 0 0 / 0.5);
+    --mq-layer-shadow:
+      0 1px 2px -1px oklch(0 0 0 / 0.06),
+      0 8px 18px -12px oklch(0 0 0 / 0.12);
+    --mq-switch-off: rgb(0 0 0 / 0.15);
+    --mq-switch-on: #171717;
+    --mq-switch-thumb: #fff;
+    --mq-switch-thumb-on: #fff;
+    --mq-focus: rgb(255 255 255 / 0.5);
+  }
+}
+
+:where(.mq) *,
+:where(.mq) *::before,
+:where(.mq) *::after {
+  box-sizing: border-box;
+}
+
+:where(.mq) :where(button) {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mq-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mq-icon {
+  display: block;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Shared interaction primitives */
+
+.mq-press {
+  transition-property: scale, background-color, color;
+  transition-duration: var(--mq-duration);
+  transition-timing-function: var(--mq-ease-out);
+}
+
+.mq-press:active:not(:disabled) {
+  scale: 0.96;
+}
+
+.mq-focus:focus-visible {
+  outline: 2px solid var(--mq-focus);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Queue panel                                                         */
+/* ------------------------------------------------------------------ */
+
+.mq-panel {
+  isolation: isolate;
+  margin-bottom: 8px;
+  transform-origin: bottom center;
+  transition-property: opacity, transform;
+  transition-duration: var(--mq-duration);
+  transition-timing-function: var(--mq-ease-enter);
+}
+
+.mq-card {
+  overflow: hidden;
+  border-radius: var(--mq-radius-panel);
+  background: var(--mq-surface);
+  box-shadow: var(--mq-shadow);
+}
+
+.mq-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 8px 8px 12px;
+}
+
+.mq-panel[data-expanded="true"] .mq-header {
+  padding-bottom: 4px;
+}
+
+.mq-count {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  color: var(--mq-ink-muted);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  transition: color var(--mq-duration) var(--mq-ease-hover);
+}
+
+.mq-count:hover {
+  color: var(--mq-ink);
+}
+
+.mq-chevron {
+  width: 12px;
+  height: 12px;
+  transition: rotate var(--mq-duration) var(--mq-ease-out);
+}
+
+.mq-panel[data-expanded="false"] .mq-chevron {
+  rotate: -90deg;
+}
+
+.mq-icon-button {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: var(--mq-radius-control);
+  color: var(--mq-ink-muted);
+}
+
+.mq-icon-button:hover,
+.mq-icon-button[aria-expanded="true"] {
+  background: var(--mq-fill-hover);
+  color: var(--mq-ink);
+}
+
+.mq-icon-button .mq-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.mq-collapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition-property: grid-template-rows, opacity;
+  transition-duration: var(--mq-duration);
+  transition-timing-function: var(--mq-ease-out);
+}
+
+.mq-panel[data-expanded="false"] .mq-collapse {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mq-collapse-inner {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------------ */
+/* List and rows                                                       */
+/* ------------------------------------------------------------------ */
+
+.mq-list {
+  position: relative;
+  max-height: 160px;
+  margin: 0;
+  padding: 0 6px 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.mq-list::-webkit-scrollbar {
+  display: none;
+}
+
+.mq-row {
+  display: flex;
+  height: 28px;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  transition-property: height, opacity;
+  transition-duration: var(--mq-duration);
+  transition-timing-function: var(--mq-ease-enter);
+}
+
+.mq-row[data-leaving="true"] {
+  height: 0;
+  opacity: 0;
+}
+
+.mq-row[data-locked="true"] {
+  pointer-events: none;
+  user-select: none;
+}
+
+.mq-row[data-drag-source="true"] {
+  position: relative;
+}
+
+.mq-item {
+  display: flex;
+  height: 28px;
+  min-height: 28px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 2px 0 6px;
+  border-radius: var(--mq-radius-row);
+  outline: none;
+  transition: opacity var(--mq-duration) var(--mq-ease-hover);
+  -webkit-touch-callout: none;
+}
+
+.mq-row:last-child .mq-item {
+  border-radius: var(--mq-radius-row) var(--mq-radius-row) var(--mq-radius-row-last) var(--mq-radius-row-last);
+}
+
+.mq-item[data-draggable="true"] {
+  cursor: grab;
+}
+
+.mq-item:not([data-editing="true"]):hover,
+.mq-item:not([data-editing="true"]):focus-visible {
+  background: var(--mq-fill-hover);
+}
+
+.mq-item[data-editing="true"] {
+  padding-right: 10px;
+  background: var(--mq-fill-editing);
+}
+
+/* A row is being moved (pointer drag or keyboard lift). */
+.mq-list:is([data-pointer-dragging="true"], [data-lifted="true"]) {
+  cursor: grabbing;
+}
+
+.mq-list:is([data-pointer-dragging="true"], [data-lifted="true"]) .mq-item {
+  background: none;
+}
+
+.mq-list:is([data-pointer-dragging="true"], [data-lifted="true"]) .mq-item-actions {
+  pointer-events: none;
+}
+
+.mq-list:is([data-pointer-dragging="true"], [data-lifted="true"])
+  .mq-row:not([data-drag-source="true"], [data-lifted="true"])
+  .mq-item {
+  opacity: 0.45;
+}
+
+.mq-row:is([data-drag-source="true"], [data-lifted="true"]) .mq-item {
+  background: var(--mq-fill-hover);
+  cursor: grabbing;
+}
+
+.mq-item-label {
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+  overflow: hidden;
+  color: var(--mq-ink);
+  font-size: 13px;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.mq-item-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.mq-item-status {
+  color: var(--mq-ink-subtle);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.mq-send-now {
+  display: inline-flex;
+  height: 20px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px 0 4px;
+  border-radius: var(--mq-radius-control);
+  color: var(--mq-ink-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.mq-send-now:hover {
+  background: var(--mq-fill-hover);
+  color: var(--mq-ink);
+}
+
+.mq-send-now .mq-icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* Fades the list's top/bottom 24px only where more rows are scrolled away. */
+@property --mq-mask-top {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --mq-mask-bottom {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes mq-scroll-mask {
+  0% {
+    --mq-mask-top: 0px;
+    --mq-mask-bottom: 24px;
+  }
+  10% {
+    --mq-mask-top: 24px;
+  }
+  90% {
+    --mq-mask-bottom: 24px;
+  }
+  100% {
+    --mq-mask-top: 24px;
+    --mq-mask-bottom: 0px;
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .mq-list[data-masked="true"]:not([data-pointer-dragging="true"]) {
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 var(--mq-mask-top),
+      #000 calc(100% - var(--mq-mask-bottom)),
+      transparent
+    );
+    animation: mq-scroll-mask linear both;
+    animation-timeline: scroll(self);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Composer                                                            */
+/* ------------------------------------------------------------------ */
+
+.mq-composer {
+  margin: 0;
+  padding: 8px;
+  border-radius: var(--mq-radius-composer);
+  background: var(--mq-surface);
+  box-shadow: var(--mq-shadow);
+}
+
+.mq-field {
+  display: block;
+  width: 100%;
+  max-height: 128px;
+  margin: 0;
+  padding: 6px 10px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--mq-ink);
+  font: inherit;
+  font-size: 16px;
+  line-height: 20px;
+  resize: none;
+  outline: none;
+}
+
+.mq-field::placeholder {
+  color: var(--mq-placeholder);
+  opacity: 1;
+}
+
+@media (min-width: 640px) {
+  .mq-field {
+    font-size: 14px;
+  }
+}
+
+.mq-chips {
+  display: flex;
+  gap: 4px;
+  padding: 0 6px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mq-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.mq-chip {
+  display: inline-flex;
+  max-width: 160px;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 2px 2px 8px;
+  border-radius: 999px;
+  background: var(--mq-chip);
+  color: var(--mq-chip-ink);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.mq-chip-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mq-chip-remove {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 999px;
+}
+
+.mq-chip-remove:hover {
+  background: var(--mq-chip-remove-hover);
+}
+
+.mq-chip-remove .mq-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.mq-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 2px;
+}
+
+.mq-footer-start {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.mq-add {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--mq-control);
+  color: var(--mq-control-ink);
+}
+
+.mq-add:hover {
+  background: var(--mq-control-hover);
+}
+
+.mq-add .mq-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.mq-file-input {
+  display: none;
+}
+
+/* Editing badge. Ink-to-edge is 12px on both ends and 8px from text to the X;
+   the 11px left padding absorbs the "E" side bearing. */
+.mq-badge {
+  display: inline-flex;
+  height: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  padding: 0 4px 0 11px;
+  border-radius: 999px;
+  background: var(--mq-badge);
+  color: var(--mq-badge-ink);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  user-select: none;
+  transform-origin: left center;
+  transition-property: opacity, transform;
+  transition-duration: var(--mq-duration);
+  transition-timing-function: var(--mq-ease-enter);
+}
+
+.mq-badge-cancel {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 999px;
+}
+
+.mq-badge-cancel:hover {
+  background: var(--mq-badge-hover);
+}
+
+.mq-badge-cancel .mq-icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* Send / record / stop share one 32px slot and cross-fade their icons. */
+.mq-primary {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.mq-primary-button {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--mq-primary);
+  color: var(--mq-on-primary);
+}
+
+.mq-primary-button:hover:not(:disabled) {
+  background: var(--mq-primary-hover);
+}
+
+.mq-primary-button[data-hidden="true"] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.mq-primary-icons {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--mq-on-primary);
+  pointer-events: none;
+}
+
+.mq-primary-stack {
+  display: grid;
+  width: 16px;
+  height: 16px;
+}
+
+.mq-primary-icon {
+  grid-area: 1 / 1;
+  width: 16px;
+  height: 16px;
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
+  transition-property: opacity, scale, filter;
+  transition-duration: 200ms;
+  transition-timing-function: var(--mq-ease-icon);
+}
+
+.mq-primary-icon[data-visible="true"] {
+  opacity: 1;
+  scale: 1;
+  filter: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Floating layers: tooltip and menu                                   */
+/* ------------------------------------------------------------------ */
+
+.mq-tooltip,
+.mq-menu {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  border: 0;
+  background: var(--mq-layer);
+  color: var(--mq-layer-ink);
+  box-shadow: var(--mq-layer-shadow);
+  transform-origin: var(--mq-origin, bottom center);
+  opacity: 1;
+  scale: 1;
+  transition-property: opacity, scale, display, overlay;
+  transition-duration: var(--mq-duration);
+  transition-timing-function: var(--mq-ease-out);
+  transition-behavior: allow-discrete;
+}
+
+.mq-tooltip:not(:popover-open),
+.mq-menu:not(:popover-open) {
+  opacity: 0;
+  scale: 0.95;
+}
+
+@starting-style {
+  .mq-tooltip:popover-open,
+  .mq-menu:popover-open {
+    opacity: 0;
+    scale: 0.95;
+  }
+}
+
+.mq-tooltip[data-side="bottom"] {
+  --mq-origin: top center;
+}
+
+.mq-menu {
+  --mq-origin: top right;
+}
+
+.mq-menu[data-side="top"] {
+  --mq-origin: bottom right;
+}
+
+.mq-tooltip {
+  width: max-content;
+  max-width: 20rem;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  pointer-events: none;
+}
+
+.mq-kbd {
+  margin-left: 6px;
+  color: var(--mq-layer-kbd);
+  font: inherit;
+  font-weight: 400;
+}
+
+.mq-menu {
+  min-width: 224px;
+  padding: 4px;
+  border-radius: var(--mq-radius-layer);
+}
+
+.mq-menu-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--mq-radius-row);
+  font-size: 13px;
+  line-height: 20px;
+  text-align: left;
+  outline: none;
+  user-select: none;
+  cursor: default;
+}
+
+.mq-menu-item:hover,
+.mq-menu-item:focus-visible {
+  background: var(--mq-layer-hover);
+}
+
+.mq-menu-item .mq-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.mq-menu-item[role="menuitemcheckbox"] {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mq-menu-separator {
+  height: 1px;
+  margin: 4px -4px;
+  border: 0;
+  background: var(--mq-layer-separator);
+}
+
+.mq-switch {
+  display: flex;
+  width: 28px;
+  height: 16px;
+  flex-shrink: 0;
+  align-items: center;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--mq-switch-off);
+  transition: background-color var(--mq-duration) ease-out;
+}
+
+.mq-switch-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--mq-switch-thumb);
+  box-shadow: 0 1px 2px oklch(0 0 0 / 0.2);
+  transition-property: translate, background-color;
+  transition-duration: var(--mq-duration);
+  transition-timing-function: ease-out;
+}
+
+[aria-checked="true"] > .mq-switch {
+  background: var(--mq-switch-on);
+}
+
+[aria-checked="true"] > .mq-switch > .mq-switch-thumb {
+  translate: 12px 0;
+  background: var(--mq-switch-thumb-on);
+}
+
+/* ------------------------------------------------------------------ */
+/* Enter motion                                                        */
+/* ------------------------------------------------------------------ */
+
+@starting-style {
+  .mq-panel {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+
+  .mq-row {
+    height: 0;
+    opacity: 0;
+  }
+
+  .mq-badge {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mq-panel,
+  .mq-row,
+  .mq-badge {
+    transition-property: opacity;
+    transition-timing-function: ease;
+  }
+
+  .mq-press,
+  .mq-count,
+  .mq-chevron,
+  .mq-collapse,
+  .mq-item,
+  .mq-switch,
+  .mq-switch-thumb,
+  .mq-tooltip,
+  .mq-menu {
+    transition: none;
+  }
+
+  .mq-press:active:not(:disabled) {
+    scale: 1;
+  }
+
+  .mq-primary-icon {
+    scale: 1;
+    filter: none;
+    transition-property: opacity;
+  }
+
+  @starting-style {
+    .mq-panel {
+      opacity: 0;
+      transform: none;
+    }
+
+    .mq-row {
+      height: 28px;
+      opacity: 0;
+    }
+
+    .mq-badge {
+      opacity: 0;
+      transform: none;
+    }
+  }
+}

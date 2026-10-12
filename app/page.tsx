@@ -12,6 +12,7 @@ const components = [
   { href: "/assignment-log", name: "Assignment log" },
   { href: "/ai-actions", name: "AI actions for table contents" },
   { href: "/data-table", name: "Data table" },
+  { href: "/ai-chat-queue", name: "AI chat message queue" },
 ];
 
 export default function Home() {
